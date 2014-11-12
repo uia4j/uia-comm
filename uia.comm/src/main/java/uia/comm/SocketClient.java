@@ -193,15 +193,17 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController> 
         if (!this.started) {
             return false;
         }
+
+        byte[] encoded = this.manager.encode(data);
         try {
-            boolean result = this.controller.send(data, times);
-            logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(data)));
+            boolean result = this.controller.send(encoded, times);
+            logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(encoded)));
             return result;
         }
         catch (Exception ex) {
             logger.error(String.format("%s> send %s failure. ex:%s",
                     this.aliasName,
-                    ByteUtils.toHexString(data),
+                    ByteUtils.toHexString(encoded),
                     ex.getMessage()));
             return false;
         }
@@ -220,13 +222,14 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController> 
             return false;
         }
 
-        if (this.controller.send(data, 1)) {
+    	byte[] encoded = this.manager.encode(data);
+        if (this.controller.send(encoded, 1)) {
             final String tx = callOut.getTxId();
             synchronized (this.callOuts) {
                 this.callOuts.put(tx, callOut);
             }
 
-            logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(data)));
+            logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(encoded)));
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
 
@@ -253,14 +256,14 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController> 
             return true;
         }
         else {
-            logger.debug(String.format("%s> send %s failure", this.aliasName, ByteUtils.toHexString(data)));
+            logger.debug(String.format("%s> send %s failure", this.aliasName, ByteUtils.toHexString(encoded)));
             return false;
         }
     }
 
     @Override
     public void messageReceived(final ProtocolMonitor<SocketDataController> monitor, final ProtocolEventArgs args) {
-        final byte[] received = args.getData();
+        final byte[] received = this.manager.decode(args.getData());
 
         // get command
         String cmd = this.manager.findCmd(received);

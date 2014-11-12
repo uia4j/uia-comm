@@ -154,7 +154,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 			return false;
 		}
 
-		return controller.send(data, times);
+		return controller.send(this.manager.encode(data), times);
 	}
 
 	/**
@@ -174,7 +174,8 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 		final String tx = callOut.getTxId();
 		this.callOuts.put(tx, callOut);
 
-		if (controller.send(data, 1)) {
+    	byte[] encoded = this.manager.encode(data);
+		if (controller.send(encoded, 1)) {
 			Timer timer = new Timer();
 			timer.schedule(new TimerTask() {
 
@@ -270,7 +271,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
 	@Override
 	public void messageReceived(final ProtocolMonitor<SocketDataController> monitor, final ProtocolEventArgs args) {
-		final byte[] received = args.getData();
+		final byte[] received = this.manager.decode(args.getData());
 
 		// get command
 		String cmd = this.manager.findCmd(received);
