@@ -21,4 +21,14 @@ public class MyManager implements MessageManager {
 		return new String(Arrays.copyOfRange(data, 4, 5));
 	}
 
+	@Override
+	public byte[] decode(byte[] data) {
+		return data;
+	}
+
+	@Override
+	public byte[] encode(byte[] data) {
+		return data;
+	}
+
 }

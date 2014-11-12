@@ -25,5 +25,19 @@ public interface MessageManager {
 	 * @return Transaction id.
 	 */
 	public String findTx(byte[] data);
+	
+	/**
+	 * Decode data to domain format.
+	 * @param data Original data.
+	 * @return Result.
+	 */
+	public byte[] decode(byte[] data);
+	
+	/**
+	 * Encode domain data to byte array.
+	 * @param data Domain data.
+	 * @return Result.
+	 */
+	public byte[] encode(byte[] data);
 
 }
