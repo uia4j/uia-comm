@@ -4,10 +4,15 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 
@@ -210,6 +215,51 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController> 
     }
 
     /**
+     * send data to socket server and wait result.
+     * 
+     * @param data
+     * @param txId
+     * @param timeout
+     * @return Null if timeout.
+     * @throws SocketException 
+     */
+    public byte[] send(final byte[] data, String txId, long timeout) throws SocketException {
+        if (!this.started) {
+            return null;
+        }
+
+        byte[] encoded = this.manager.encode(data);
+        MessageCallOutConcurrent callout = new MessageCallOutConcurrent(txId, timeout);
+        ExecutorService threadPool = Executors.newSingleThreadExecutor();
+
+        try {
+            synchronized (this.callOuts) {
+                this.callOuts.put(txId, callout);
+            }
+
+            if (this.controller.send(encoded, 1)) {
+                logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(encoded)));
+                try {
+                    Future<byte[]> future = threadPool.submit(callout);
+                    return future.get();
+                }
+                catch (InterruptedException | ExecutionException e) {
+                    return null;
+                }
+            }
+            else {
+                logger.debug(String.format("%s> send %s failure", this.aliasName, ByteUtils.toHexString(encoded)));
+                throw new SocketException(this.aliasName + "> send failure");
+            }
+        }
+        finally {
+            synchronized (this.callOuts) {
+                this.callOuts.remove(txId);
+            }
+        }
+    }
+
+    /**
      * Send data to socket server.
      * 
      * @param data Data.
@@ -222,7 +272,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController> 
             return false;
         }
 
-    	byte[] encoded = this.manager.encode(data);
+        byte[] encoded = this.manager.encode(data);
         if (this.controller.send(encoded, 1)) {
             final String tx = callOut.getTxId();
             synchronized (this.callOuts) {
