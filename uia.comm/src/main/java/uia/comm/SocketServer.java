@@ -1,6 +1,7 @@
 package uia.comm;
 
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -11,6 +12,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 
@@ -149,12 +154,66 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
      * @param data Data.
      */
     public boolean send(final String clientName, final byte[] data, int times) {
+        if (this.started) {
+            return false;
+        }
+
         final SocketDataController controller = this.controllers.get(clientName);
         if (controller == null) {
             return false;
         }
 
         return controller.send(this.manager.encode(data), times);
+    }
+
+    /**
+     * send data to socket server and wait result.
+     * 
+     * @param data
+     * @param txId
+     * @param timeout
+     * @return Null if timeout.
+     * @throws SocketException 
+     */
+    public byte[] send(final String clientName, final byte[] data, String txId, long timeout) throws SocketException {
+        if (!this.started) {
+            throw new SocketException(this.aliasName + "> is not started.");
+        }
+
+        final SocketDataController controller = this.controllers.get(clientName);
+        if (controller == null) {
+            throw new SocketException(clientName + "> missing");
+        }
+
+        byte[] encoded = this.manager.encode(data);
+        MessageCallOutConcurrent callout = new MessageCallOutConcurrent(txId, timeout);
+        ExecutorService threadPool = Executors.newSingleThreadExecutor();
+
+        try {
+            synchronized (this.callOuts) {
+                this.callOuts.put(txId, callout);
+            }
+
+            if (controller.send(encoded, 1)) {
+                logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(encoded)));
+                try {
+                    Future<byte[]> future = threadPool.submit(callout);
+                    return future.get();
+                }
+                catch (InterruptedException | ExecutionException e) {
+                    return null;
+                }
+            }
+            else {
+                logger.debug(String.format("%s> send %s failure", this.aliasName, ByteUtils.toHexString(encoded)));
+                throw new SocketException(clientName + "> send failure");
+            }
+        }
+        finally {
+            synchronized (this.callOuts) {
+                this.callOuts.remove(txId);
+            }
+        }
     }
 
     /**
@@ -166,13 +225,19 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
      * @param timeout Timeout seconds.
      */
     public boolean send(final String clientName, final byte[] data, final MessageCallOut callOut, final long timeout) {
+        if (this.started) {
+            return false;
+        }
+
         final SocketDataController controller = this.controllers.get(clientName);
         if (controller == null) {
             return false;
         }
 
         final String tx = callOut.getTxId();
-        this.callOuts.put(tx, callOut);
+        synchronized (this.callOuts) {
+            this.callOuts.put(tx, callOut);
+        }
 
         byte[] encoded = this.manager.encode(data);
         if (controller.send(encoded, 1)) {
@@ -193,7 +258,9 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
             return true;
         }
         else {
-            this.callOuts.remove(tx);
+            synchronized (this.callOuts) {
+                this.callOuts.remove(tx);
+            }
             return false;
         }
     }

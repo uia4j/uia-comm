@@ -273,12 +273,13 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController> 
         }
 
         byte[] encoded = this.manager.encode(data);
-        if (this.controller.send(encoded, 1)) {
-            final String tx = callOut.getTxId();
-            synchronized (this.callOuts) {
-                this.callOuts.put(tx, callOut);
-            }
 
+        final String tx = callOut.getTxId();
+        synchronized (this.callOuts) {
+            this.callOuts.put(tx, callOut);
+        }
+
+        if (this.controller.send(encoded, 1)) {
             logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(encoded)));
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
@@ -306,6 +307,9 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController> 
             return true;
         }
         else {
+            synchronized (this.callOuts) {
+                this.callOuts.remove(tx);
+            }
             logger.debug(String.format("%s> send %s failure", this.aliasName, ByteUtils.toHexString(encoded)));
             return false;
         }
