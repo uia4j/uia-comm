@@ -1,7 +1,5 @@
 package uia.comm;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
@@ -122,7 +120,13 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController> 
      * @return Connect success or not.
      */
     public boolean connect(String address, int port) {
+        /**
         if (this.started || !SocketClient.ping(address, 2000)) {
+            return false;
+        }
+         */
+
+        if (this.started) {
             return false;
         }
 
@@ -375,53 +379,17 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController> 
         logger.debug("error data: " + ByteUtils.toHexString(args.getData(), "-"));
     }
 
-    private static boolean ping(String ip, int timeout) {
+    public static boolean ping(String ip, int timeout) {
         if (timeout < 0) {
             timeout = 5000;
         }
 
-        boolean alive = false;
-        Process p = null;
-        String osName = System.getProperty("os.name");
         try {
-            Runtime r = Runtime.getRuntime();
-            if (osName.indexOf("Windows") >= 0) {
-                p = r.exec("ping -w " + timeout + " " + ip);
-                if (p == null) {
-                    alive = false;
-                }
-                else {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                    String line = new String();
-                    for (int i = 0; i < 7; i++) {
-                        line = br.readLine().toLowerCase();
-                        if (line.indexOf("ttl") >= 0 && line.indexOf("time") >= 0) {
-                            alive = true;
-                            break;
-                        }
-                    }
-                    br.close();
-                }
-            }
-            else {
-                p = r.exec("ping -c 1 -W " + timeout + " " + ip);
-                if (p == null) {
-                    alive = false;
-                }
-                else {
-                    alive = p.waitFor() == 0;
-                }
-
-            }
+            InetAddress address = InetAddress.getByName(ip);
+            return address.isReachable(5000);
         }
         catch (Exception e) {
-            alive = false;
+            return false;
         }
-        finally {
-            if (p != null) {
-                p.destroy();
-            }
-        }
-        return alive;
     }
 }
