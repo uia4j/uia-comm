@@ -9,18 +9,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-	<!-- 
-	<repositories>
-		<repository>
-			<id>uia</id>
-			<url>http://192.168.0.100:8080/nexus/content/repositories/uia</url>
-		</repository>
-		<repository>
-			<id>uia-snapshot</id>
-			<url>http://192.168.0.100:8080/nexus/content/repositories/uia-snapshot</url>
-		</repository>
-	</repositories>
-	 -->
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -52,8 +40,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.5.1</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>1.6</source>
+					<target>1.6</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -71,12 +59,12 @@
 		<repository>
 			<id>uia</id>
 			<name>uia</name>
-			<url>http://192.168.0.100:8080/nexus/content/repositories/uia/</url>
+			<url>http://192.168.1.100:8080/nexus/content/repositories/uia/</url>
 		</repository>
 		<snapshotRepository>
 			<id>uia-snapshot</id>
 			<name>uia-snapshot</name>
-			<url>http://192.168.0.100:8080/nexus/content/repositories/uia-snapshot/</url>
+			<url>http://192.168.1.100:8080/nexus/content/repositories/uia-snapshot/</url>
 			<uniqueVersion>false</uniqueVersion>
 		</snapshotRepository>
 	</distributionManagement>
