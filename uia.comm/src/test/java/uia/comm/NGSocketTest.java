@@ -11,6 +11,7 @@ package uia.comm;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.junit.Test;
 
 import uia.comm.my.MyClientRequest;
 import uia.comm.my.MyManager;
@@ -68,6 +69,7 @@ public class NGSocketTest {
         this.server.stop();
     }
 
+    @Test
     public void testInOut() throws Exception {
         int size = 1280184;
         byte[] data = new byte[size];

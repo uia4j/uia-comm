@@ -129,7 +129,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Is connected or not.
-     * @return
+     * @return Connect or not.
      */
     public boolean isConnected() {
         return this.started;
@@ -295,7 +295,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
      * @param callOut Reply message worker.
      * @param timeout Timeout seconds.
      * @return Send result.
-     * @throws SocketException 
+     * @throws SocketException Raise if not started.
      */
     public boolean send(final byte[] data, final MessageCallOut callOut, long timeout) throws SocketException {
         if (!this.started) {

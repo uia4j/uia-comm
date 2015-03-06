@@ -74,7 +74,8 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
      * @param protocol The protocol on this socket channel.
      * @param port Socket port.
      * @param manager Protocol manager.
-     * @throws Exception
+     * @param aliasName Alias name.
+     * @throws Exception Raise construct failure.
      */
     public SocketServer(
             Protocol<SocketDataController> protocol,
@@ -121,7 +122,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
     /**
      * Add a listener of states of server.
      * 
-     * @param listener
+     * @param listener The listener.
      */
     public void addServerListener(SocketServerListener listener) {
         this.listeners.add(listener);
@@ -150,7 +151,8 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
      * 
      * @param clientName Client name.
      * @param data Data.
-     * @throws SocketException 
+     * @return Send success or not.
+     * @throws SocketException Raise if not started or client missing.
      */
     public boolean send(final String clientName, final byte[] data) throws SocketException {
         return send(clientName, data, 1);
@@ -161,8 +163,9 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
      * 
      * @param clientName Client name.
      * @param data Data.
-     * @param times
-     * @throws SocketException 
+     * @param times Retry times.
+     * @return Send success or not.
+     * @throws SocketException Raise if not started or client missing.
      */
     public boolean send(final String clientName, final byte[] data, int times) throws SocketException {
         if (!this.started) {
@@ -180,11 +183,12 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
     /**
      * send data to socket server and wait result.
      * 
-     * @param data
-     * @param txId
-     * @param timeout
+     * @param clientName Client name.
+     * @param data Data to be sent.
+     * @param txId Transaction id.
+     * @param timeout Timeout millisecond.
      * @return Null if timeout.
-     * @throws SocketException 
+     * @throws SocketException Raise if not started.
      */
     public byte[] send(final String clientName, final byte[] data, String txId, long timeout) throws SocketException {
         if (!this.started) {
@@ -241,6 +245,8 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
      * @param data Data
      * @param callOut Reply data worker.
      * @param timeout Timeout seconds.
+     * @return Send success or not.
+     * @throws SocketException Raise if not started or client missing.
      */
     public boolean send(final String clientName, final byte[] data, final MessageCallOut callOut, final long timeout) throws SocketException {
         if (!this.started) {
@@ -291,6 +297,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Start this server.
+     * @return Success or not.
      */
     public boolean start() {
         if (this.started) {
