@@ -11,7 +11,6 @@ package uia.comm;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import uia.comm.my.MyManager;
@@ -38,41 +37,9 @@ public class SocketClientTest {
 
     @Test
     public void testConnect() throws Exception {
-        System.out.println(this.socketClient.connect("localhost", 1234));
-        Thread.sleep(1000);
-        System.out.println(this.socketClient.connect("localhost", 1234));
-        this.socketClient.disconnect();
-        Thread.sleep(1000);
-        System.out.println(this.socketClient.connect("localhost", 1234));
-        Thread.sleep(1000);
-        System.out.println(this.socketClient.connect("localhost", 1234));
-        this.socketClient.disconnect();
-        Thread.sleep(1000);
-        System.out.println(this.socketClient.connect("localhost", 1234));
-        Thread.sleep(1000);
-        System.out.println(this.socketClient.connect("localhost", 1234));
-        this.socketClient.disconnect();
-        Thread.sleep(1000);
-    }
-
-    @Test
-    @Ignore
-    public void testConnectPMC() throws Exception {
-        long t1 = System.currentTimeMillis();
-        System.out.println(this.socketClient.connect("192.168.0.100", 16000));
-        long t2 = System.currentTimeMillis();
-        System.out.println(t2 - t1);
-        this.socketClient.disconnect();
-    }
-
-    @Test
-    @Ignore
-    public void testConnectOnb() throws Exception {
-        long t1 = System.currentTimeMillis();
-        System.out.println(this.socketClient.connect("222.66.141.10", 6055));
-        long t2 = System.currentTimeMillis();
-        System.out.println(t2 - t1);
-        Thread.sleep(5000);
+        String ip = "192.168.50.191";
+        System.out.println(this.socketClient.connect(ip, 1234));
+        Thread.sleep(10000);
         this.socketClient.disconnect();
     }
 }

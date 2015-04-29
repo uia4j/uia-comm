@@ -26,6 +26,8 @@ public class MultiProtocolMonitor<T> implements ProtocolMonitor<T> {
 
     private T controller;
 
+    private int failCount;
+
     /**
      * Constructor.
      * 
@@ -55,8 +57,10 @@ public class MultiProtocolMonitor<T> implements ProtocolMonitor<T> {
     }
 
     @Override
-    public void read(byte data) {
+    public synchronized void read(byte data) {
+        this.failCount = 0;
         for (ProtocolMonitor<MultiProtocolMonitor<T>> monitor : this.monitors) {
+            this.failCount++;
             monitor.read(data);
         }
     }
@@ -85,6 +89,21 @@ public class MultiProtocolMonitor<T> implements ProtocolMonitor<T> {
         this.controller = controller;
     }
 
+    @Override
+    public boolean isRunning() {
+        for (ProtocolMonitor<MultiProtocolMonitor<T>> m : this.monitors)
+        {
+            if (m.isRunning()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    int readFailCount() {
+        return this.failCount;
+    }
+
     /**
      * Reset protocol monitor.
      * @param monitor Protocol monitor.
@@ -97,5 +116,4 @@ public class MultiProtocolMonitor<T> implements ProtocolMonitor<T> {
             }
         }
     }
-
 }

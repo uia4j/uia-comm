@@ -60,4 +60,10 @@ public interface ProtocolMonitor<C> {
      * @param controller The controller.
      */
     public void setController(C controller);
+
+    /**
+     * If monitor is running or idle.
+     * @return Running or not.
+     */
+    public boolean isRunning();
 }

@@ -11,8 +11,6 @@ package uia.comm.protocol;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 /**
  * 
  * @author Kyle
@@ -20,7 +18,7 @@ import org.apache.log4j.Logger;
  */
 public class MultiProtocol<T> extends AbstractProtocol<T> {
 
-    private final static Logger logger = Logger.getLogger(MultiProtocol.class);
+    // private final static Logger logger = Logger.getLogger(MultiProtocol.class);
 
     final List<Protocol<MultiProtocolMonitor<T>>> protocols;
 
@@ -42,8 +40,8 @@ public class MultiProtocol<T> extends AbstractProtocol<T> {
 
                 @Override
                 public void messageError(ProtocolMonitor<MultiProtocolMonitor<T>> monitor, ProtocolEventArgs args) {
-                    if (MultiProtocol.this.protocols.indexOf(monitor.getController()) == 0) {
-                        raiseBorken(monitor.getController(), args);
+                    if (MultiProtocol.this.protocols.indexOf(monitor.getProtocol()) == 0) {
+                        // raiseBorken(monitor.getController(), args);
                     }
                     else {
                         /**

@@ -374,6 +374,10 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     @Override
     public void messageReceived(final ProtocolMonitor<SocketDataController> monitor, final ProtocolEventArgs args) {
+        if (args.getData() == null || args.getData().length == 0) {
+            return;
+        }
+
         final byte[] received = this.manager.decode(args.getData());
 
         // get command
@@ -456,6 +460,10 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     @Override
     public void messageError(ProtocolMonitor<SocketDataController> monitor, ProtocolEventArgs args) {
+        if (args.getData() == null || args.getData().length == 0) {
+            return;
+        }
+
         logger.debug(String.format("%s> %s> %s pack message error: %s(%s).",
                 this.aliasName,
                 monitor.getName(),

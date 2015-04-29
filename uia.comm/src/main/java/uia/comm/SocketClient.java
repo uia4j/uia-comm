@@ -62,6 +62,10 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     private SocketChannel ch;
 
+    private String addr;
+
+    private int port;
+
     /**
      * The constructor.
      * 
@@ -147,6 +151,10 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             return true;
         }
 
+        // keep address & port
+        this.addr = address;
+        this.port = port;
+
         try {
             this.ch = SocketChannel.open();
             if (this.clientPort > 0) {
@@ -154,11 +162,17 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
                 logger.debug(String.format("%s> connect to %s with port:%d", this.aliasName, address, this.clientPort));
             }
 
+            this.ch.configureBlocking(true);
+            this.ch.socket().connect(new InetSocketAddress(InetAddress.getByName(address), port), 1000);
+            this.ch.configureBlocking(false);
+
+            /**
             this.ch.configureBlocking(false);
             this.ch.connect(new InetSocketAddress(InetAddress.getByName(address), port));
             // must have in non-blocking mode!!
             while (!this.ch.finishConnect()) {
             }
+            */
             this.controller = new SocketDataController(
                     this.aliasName,
                     this,
@@ -172,7 +186,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             return true;
         }
         catch (Exception ex) {
-            logger.error(String.format("%s> connect to %s failure. ex:%s", this.aliasName, address, ex.getMessage()));
+            logger.error(String.format("%s> connect to %s failure.", this.aliasName, address));
             this.started = false;
             this.ch = null;
             this.controller = null;
@@ -181,7 +195,19 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
     }
 
     /**
-     * Disconnect to socket server.
+     * Try connect to remote.
+     * @return Connected or not.
+     */
+    public boolean tryConnect() {
+        if (this.addr == null) {
+            return false;
+        }
+
+        return connect(this.addr, this.port);
+    }
+
+    /**
+     * Disconnect to socket server. This will clear address and port information.
      */
     public void disconnect() {
         if (!this.started || this.ch == null) {
@@ -410,6 +436,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
         // DO Nothing
     }
 
+    @SuppressWarnings("unused")
     private void running() {
         // use internal selector to handle received data.
         while (this.started) {
@@ -423,7 +450,6 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             Iterator<SelectionKey> iterator = this.selector.selectedKeys().iterator();
             while (iterator.hasNext()) {
                 SelectionKey selectionKey = iterator.next();
-                @SuppressWarnings("unused")
                 SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
                 iterator.remove();
 
