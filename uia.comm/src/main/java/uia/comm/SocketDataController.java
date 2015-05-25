@@ -44,10 +44,6 @@ public class SocketDataController {
 
     private SocketChannel ch;
 
-    private IdleTimer idleTimer;
-
-    private int idlePeriod;
-
     /**
      * 
      * @param name Name.
@@ -61,8 +57,7 @@ public class SocketDataController {
             String name,
             SocketApp app,
             SocketChannel ch,
-            ProtocolMonitor<SocketDataController> monitor,
-            int idlePeriod) throws IOException {
+            ProtocolMonitor<SocketDataController> monitor) throws IOException {
         this.name = name;
         this.app = app;
         this.started = false;
@@ -72,8 +67,6 @@ public class SocketDataController {
         this.ch.register(this.selector, SelectionKey.OP_READ);
         this.monitor = monitor;
         this.monitor.setController(this);
-        this.idlePeriod = idlePeriod;
-        this.idleTimer = this.idlePeriod <= 0 ? null : new IdleTimer(idlePeriod);
     }
 
     /**
@@ -97,7 +90,6 @@ public class SocketDataController {
                 this.ch.socket().setSendBufferSize(data.length);
                 int cnt = this.ch.write(ByteBuffer.wrap(data));
                 if (cnt == data.length) {
-                    resetIdleTimer();
                     return true;
                 }
                 else {
@@ -148,9 +140,6 @@ public class SocketDataController {
 
             }
         }
-        if (this.idleTimer != null) {
-            this.idleTimer.stop();
-        }
         this.ch = null;
         this.started = false;
     }
@@ -164,8 +153,6 @@ public class SocketDataController {
         if (this.ch == null) {
             return;
         }
-
-        resetIdleTimer();
 
         int len = 0;
         ByteBuffer buffer = ByteBuffer.allocate(1024);
@@ -186,13 +173,6 @@ public class SocketDataController {
 
     SocketChannel getChannel() {
         return this.ch;
-    }
-
-    private void resetIdleTimer() {
-        if (this.idleTimer != null) {
-            this.idleTimer.stop();
-            this.idleTimer = new IdleTimer(this.idlePeriod);
-        }
     }
 
     private void idleOut() {

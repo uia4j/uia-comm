@@ -114,6 +114,38 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
     }
 
     /**
+     * Get address.
+     * @return Address.
+     */
+    public String getAddr() {
+        return this.addr;
+    }
+
+    /**
+     * Set address.
+     * @param addr Address.
+     */
+    public void setAddr(String addr) {
+        this.addr = addr;
+    }
+
+    /**
+     * Get port no.
+     * @return Port no.
+     */
+    public int getPort() {
+        return this.port;
+    }
+
+    /**
+     * Set port no.
+     * @param port Port no.
+     */
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    /**
      * Get protocol on this socket channel.
      * 
      * @return The protocol.
@@ -147,23 +179,36 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
      * @return True if connect success or connected already.
      */
     public boolean connect(String address, int port) {
+        disconnect();
+
+        this.addr = address;
+        this.port = port;
+
+        return tryConnect();
+    }
+
+    /**
+     * Try connect to remote.
+     * @return Connected or not.
+     */
+    public boolean tryConnect() {
+        if (this.addr == null) {
+            return false;
+        }
+
         if (this.started) {
             return true;
         }
-
-        // keep address & port
-        this.addr = address;
-        this.port = port;
 
         try {
             this.ch = SocketChannel.open();
             if (this.clientPort > 0) {
                 this.ch.socket().bind(new InetSocketAddress(this.clientPort));
-                logger.debug(String.format("%s> connect to %s with port:%d", this.aliasName, address, this.clientPort));
+                logger.info(String.format("%s> connect to %s with port:%d", this.aliasName, this.addr, this.clientPort));
             }
 
             this.ch.configureBlocking(true);
-            this.ch.socket().connect(new InetSocketAddress(InetAddress.getByName(address), port), 1000);
+            this.ch.socket().connect(new InetSocketAddress(InetAddress.getByName(this.addr), this.port), 1000);
             this.ch.configureBlocking(false);
 
             /**
@@ -177,33 +222,20 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
                     this.aliasName,
                     this,
                     this.ch,
-                    this.protocol.createMonitor(this.aliasName),
-                    0);
+                    this.protocol.createMonitor(this.aliasName));
             this.controller.start();
 
-            logger.info(String.format("%s> connect to %s", this.aliasName, address));
+            logger.info(String.format("%s> connect to %s", this.aliasName, this.addr));
             this.started = true;
             return true;
         }
         catch (Exception ex) {
-            logger.error(String.format("%s> connect to %s failure.", this.aliasName, address));
+            logger.error(String.format("%s> connect to %s failure.", this.aliasName, this.addr));
             this.started = false;
             this.ch = null;
             this.controller = null;
             return false;
         }
-    }
-
-    /**
-     * Try connect to remote.
-     * @return Connected or not.
-     */
-    public boolean tryConnect() {
-        if (this.addr == null) {
-            return false;
-        }
-
-        return connect(this.addr, this.port);
     }
 
     /**
@@ -389,7 +421,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
                 return;
             }
 
-            logger.info(String.format("%s> cmd:%s callIn", this.aliasName, cmd));
+            logger.debug(String.format("%s> cmd:%s callIn", this.aliasName, cmd));
             new Thread(new Runnable() {
 
                 @Override
@@ -411,7 +443,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
                 this.callOuts.remove(tx);
             }
 
-            logger.info(String.format("%s> cmd:%s tx:%s callout reply", this.aliasName, cmd, tx));
+            logger.debug(String.format("%s> cmd:%s tx:%s callout reply", this.aliasName, cmd, tx));
             new Thread(new Runnable() {
 
                 @Override

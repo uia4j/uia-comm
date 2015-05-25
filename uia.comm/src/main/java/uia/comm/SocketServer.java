@@ -402,7 +402,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
                 return;
             }
 
-            logger.info(String.format("%s> %s> %s cmd:%s callIn",
+            logger.debug(String.format("%s> %s> %s cmd:%s callIn",
                     this.aliasName,
                     monitor.getName(),
                     monitor.getProtocol().getAliasName(),
@@ -441,7 +441,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
                 callOuts.remove(tx);
             }
 
-            logger.info(String.format("%s> %s> %s cmd:%s tx:%s callOut reply",
+            logger.debug(String.format("%s> %s> %s cmd:%s tx:%s callOut reply",
                     this.aliasName,
                     monitor.getController().getName(),
                     monitor.getProtocol().getAliasName(),
@@ -492,7 +492,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
                     }
                 }
             }
-            logger.info(String.format("%s> polling(%d)", this.aliasName, this.controllers.size()));
+            logger.debug(String.format("%s> polling(%d)", this.aliasName, this.controllers.size()));
 
             for (String key : keys) {
                 disconnect(key);
@@ -561,8 +561,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
                     clientId,
                     this,
                     client,
-                    this.protocol.createMonitor(clientId),
-                    30000);
+                    this.protocol.createMonitor(clientId));
             synchronized (this.controllers) {
                 this.controllers.put(clientId, controller);
             }
