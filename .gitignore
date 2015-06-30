@@ -1,8 +1,4 @@
-uia.comm/.settings
-uia.comm/.project
-uia.comm/.classpath
-uia.comm/target
-uia.comm.client.test/.settings
-uia.comm.client.test/.project
-uia.comm.client.test/.classpath
-uia.comm.client.test/target
+/bin
+/log
+
+

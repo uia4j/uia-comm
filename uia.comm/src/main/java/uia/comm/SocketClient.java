@@ -204,7 +204,6 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             this.ch = SocketChannel.open();
             if (this.clientPort > 0) {
                 this.ch.socket().bind(new InetSocketAddress(this.clientPort));
-                logger.info(String.format("%s> connect to %s with port:%d", this.aliasName, this.addr, this.clientPort));
             }
 
             this.ch.configureBlocking(true);
@@ -225,12 +224,37 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
                     this.protocol.createMonitor(this.aliasName));
             this.controller.start();
 
-            logger.info(String.format("%s> connect to %s", this.aliasName, this.addr));
+            if (this.clientPort > 0) {
+                logger.info(String.format("%s> connect to %s:%s(%d)",
+                        this.aliasName,
+                        this.addr,
+                        this.port,
+                        this.clientPort));
+            }
+            else {
+                logger.info(String.format("%s> connect to %s:%s",
+                        this.aliasName,
+                        this.addr,
+                        this.port));
+            }
             this.started = true;
             return true;
         }
         catch (Exception ex) {
-            logger.error(String.format("%s> connect to %s failure.", this.aliasName, this.addr));
+            if (this.clientPort > 0) {
+                logger.error(String.format("%s> connect to %s:%s(%d) failure.",
+                        this.aliasName,
+                        this.addr,
+                        this.port,
+                        this.clientPort));
+            }
+            else {
+                logger.error(String.format("%s> connect to %s:%s failure.",
+                        this.aliasName,
+                        this.addr,
+                        this.port));
+
+            }
             this.started = false;
             this.ch = null;
             this.controller = null;
