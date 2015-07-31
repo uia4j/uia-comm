@@ -54,11 +54,11 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     private boolean started;
 
+    private Selector serverSelector;
+
+    private ServerSocketChannel ch;
+
     private final HashMap<String, SocketDataController> controllers;
-
-    private final Selector serverSelector;
-
-    private final ServerSocketChannel ch;
 
     private final String aliasName;
 
@@ -177,7 +177,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
             throw new SocketException(clientName + "> missing");
         }
 
-        return controller.send(this.manager.encode(data), times);
+        return controller.send(data, times);
     }
 
     /**
@@ -200,7 +200,6 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
             throw new SocketException(clientName + "> missing");
         }
 
-        byte[] encoded = this.manager.encode(data);
         MessageCallOutConcurrent callout = new MessageCallOutConcurrent(txId, timeout);
         ExecutorService threadPool = Executors.newSingleThreadExecutor();
 
@@ -215,8 +214,8 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
                 callOuts.put(txId, callout);
             }
 
-            if (controller.send(encoded, 1)) {
-                logger.debug(String.format("%s> %s> send %s", this.aliasName, clientName, ByteUtils.toHexString(encoded, 100)));
+            if (controller.send(data, 1)) {
+                logger.debug(String.format("%s> %s> send %s", this.aliasName, clientName, ByteUtils.toHexString(data, 100)));
                 try {
                     Future<byte[]> future = threadPool.submit(callout);
                     return future.get();
@@ -227,7 +226,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
                 }
             }
             else {
-                logger.debug(String.format("%s> %s> send %s failure", this.aliasName, clientName, ByteUtils.toHexString(encoded, 100)));
+                logger.debug(String.format("%s> %s> send %s failure", this.aliasName, clientName, ByteUtils.toHexString(data, 100)));
                 throw new SocketException(String.format("%s> %s> send failure", this.aliasName, clientName));
             }
         }
@@ -269,8 +268,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
         }
 
         final HashMap<String, MessageCallOut> callOutsRef = callOuts;
-        byte[] encoded = this.manager.encode(data);
-        if (controller.send(encoded, 1)) {
+        if (controller.send(data, 1)) {
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
 
@@ -300,8 +298,12 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
      * @return Success or not.
      */
     public boolean start() {
-        if (this.started) {
+        if (this.serverSelector == null) {
             return false;
+        }
+
+        if (this.started) {
+            return true;
         }
 
         this.started = true;
@@ -363,17 +365,28 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
                 }
                 raiseDisconnected(controller);
             }
+            Thread.sleep(1000);
         }
         catch (Exception ex) {
 
         }
         finally {
             this.controllers.clear();
+            try {
+                this.serverSelector.close();
+                this.ch.socket().close();
+                this.ch.close();
+            }
+            catch (Exception ex) {
+
+            }
         }
+        this.ch = null;
+        this.serverSelector = null;
     }
 
     @Override
-    public void messageReceived(final ProtocolMonitor<SocketDataController> monitor, final ProtocolEventArgs args) {
+    public void messageReceived(final ProtocolMonitor<SocketDataController> monitor, ProtocolEventArgs args) {
         if (args.getData() == null || args.getData().length == 0) {
             return;
         }
@@ -509,6 +522,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
                 this.serverSelector.select(); // wait NIO event.
             }
             catch (Exception ex) {
+                logger.error("comm> ", ex);
                 continue;
             }
 
@@ -561,6 +575,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
                     clientId,
                     this,
                     client,
+                    this.manager,
                     this.protocol.createMonitor(clientId));
             synchronized (this.controllers) {
                 this.controllers.put(clientId, controller);

@@ -38,6 +38,8 @@ public class SocketDataController {
 
     private final Selector selector;
 
+    private MessageManager mgr;
+
     private final ProtocolMonitor<SocketDataController> monitor;
 
     private SocketApp app;
@@ -57,6 +59,7 @@ public class SocketDataController {
             String name,
             SocketApp app,
             SocketChannel ch,
+            MessageManager mgr,
             ProtocolMonitor<SocketDataController> monitor) throws IOException {
         this.name = name;
         this.app = app;
@@ -65,6 +68,7 @@ public class SocketDataController {
         this.ch = ch;
         this.ch.configureBlocking(false);
         this.ch.register(this.selector, SelectionKey.OP_READ);
+        this.mgr = mgr;
         this.monitor = monitor;
         this.monitor.setController(this);
     }
@@ -85,11 +89,12 @@ public class SocketDataController {
      * @return Success or not.
      */
     public synchronized boolean send(byte[] data, int times) {
+        final byte[] encoded = this.mgr.encode(data);
         while (times > 0) {
             try {
-                this.ch.socket().setSendBufferSize(data.length);
-                int cnt = this.ch.write(ByteBuffer.wrap(data));
-                if (cnt == data.length) {
+                this.ch.socket().setSendBufferSize(encoded.length);
+                int cnt = this.ch.write(ByteBuffer.wrap(encoded));
+                if (cnt == encoded.length) {
                     return true;
                 }
                 else {

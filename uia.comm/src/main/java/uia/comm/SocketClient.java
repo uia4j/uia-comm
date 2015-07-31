@@ -221,6 +221,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
                     this.aliasName,
                     this,
                     this.ch,
+                    this.manager,
                     this.protocol.createMonitor(this.aliasName));
             this.controller.start();
 
@@ -282,6 +283,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             this.started = false;
             this.controller = null;
             this.ch = null;
+            System.gc();
         }
 
     }
@@ -310,16 +312,15 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             throw new SocketException(this.aliasName + "> is not started.");
         }
 
-        byte[] encoded = this.manager.encode(data);
         try {
-            boolean result = this.controller.send(encoded, times);
-            logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(encoded, 100)));
+            boolean result = this.controller.send(data, times);
+            logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(data, 100)));
             return result;
         }
         catch (Exception ex) {
             logger.error(String.format("%s> send %s failure. ex:%s",
                     this.aliasName,
-                    ByteUtils.toHexString(encoded, 100),
+                    ByteUtils.toHexString(data, 100),
                     ex.getMessage()));
             return false;
         }
@@ -339,7 +340,6 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             throw new SocketException(this.aliasName + "> is not started.");
         }
 
-        byte[] encoded = this.manager.encode(data);
         MessageCallOutConcurrent callout = new MessageCallOutConcurrent(txId, timeout);
         ExecutorService threadPool = Executors.newSingleThreadExecutor();
 
@@ -348,8 +348,8 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
                 this.callOuts.put(txId, callout);
             }
 
-            if (this.controller.send(encoded, 1)) {
-                logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(encoded, 100)));
+            if (this.controller.send(data, 1)) {
+                logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(data, 100)));
                 try {
                     Future<byte[]> future = threadPool.submit(callout);
                     return future.get();
@@ -359,7 +359,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
                 }
             }
             else {
-                logger.debug(String.format("%s> send %s failure", this.aliasName, ByteUtils.toHexString(encoded, 100)));
+                logger.debug(String.format("%s> send %s failure", this.aliasName, ByteUtils.toHexString(data, 100)));
                 throw new SocketException(this.aliasName + "> send failure");
             }
         }
@@ -384,15 +384,13 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             throw new SocketException(this.aliasName + "> is not started.");
         }
 
-        byte[] encoded = this.manager.encode(data);
-
         final String tx = callOut.getTxId();
         synchronized (this.callOuts) {
             this.callOuts.put(tx, callOut);
         }
 
-        if (this.controller.send(encoded, 1)) {
-            logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(encoded, 100)));
+        if (this.controller.send(data, 1)) {
+            logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(data, 100)));
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
 
@@ -422,13 +420,17 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             synchronized (this.callOuts) {
                 this.callOuts.remove(tx);
             }
-            logger.debug(String.format("%s> send %s failure", this.aliasName, ByteUtils.toHexString(encoded, 100)));
+            logger.debug(String.format("%s> send %s failure", this.aliasName, ByteUtils.toHexString(data, 100)));
             return false;
         }
     }
 
     @Override
     public void messageReceived(final ProtocolMonitor<SocketDataController> monitor, final ProtocolEventArgs args) {
+        if (args.getData() == null || args.getData().length == 0) {
+            return;
+        }
+
         final byte[] received = this.manager.decode(args.getData());
 
         // get command
