@@ -89,19 +89,18 @@ public class NGSocketTest {
         SocketClientGroup group = new SocketClientGroup(5);
         group.register(client);
         client.connect("localhost", 5953);
+
         group.send(data, "2", 2000);
 
-        /**
         client.send(
                 data,
                 this.clientRequest,
                 2000);
-         */
-        // Thread.sleep(3000);
+
+        Thread.sleep(3000);
 
         // close
         client.disconnect();
-        Thread.sleep(5000);
 
         after();
     }

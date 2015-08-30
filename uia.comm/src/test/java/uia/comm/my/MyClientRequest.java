@@ -31,7 +31,7 @@ public class MyClientRequest implements MessageCallOut, MessageCallIn<SocketData
 
     @Override
     public void execute(byte[] reply) {
-        logger.info("client reply: " + reply.length);
+        logger.info("client gets reply: " + reply.length);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class MyClientRequest implements MessageCallOut, MessageCallIn<SocketData
     public void execute(byte[] request, SocketDataController controller) {
         try {
             logger.info(controller.getName() + "> callin> data len: " + request.length);
-            controller.send(new byte[] { (byte) 0x8a, 0x44, 0x45, 0x46, 0x32, 0x31, (byte) 0xa8 }, 1);
+            System.out.println("client executes:" + controller.send(new byte[] { (byte) 0x8a, 0x44, 0x45, 0x46, 0x32, 0x31, (byte) 0xa8 }, 1));
         }
         catch (Exception ex) {
             ex.printStackTrace();

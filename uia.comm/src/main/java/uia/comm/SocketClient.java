@@ -34,9 +34,9 @@ import uia.utils.ByteUtils;
 
 /**
  * Socket client.
- * 
+ *
  * @author Kyle
- * 
+ *
  */
 public class SocketClient implements ProtocolEventHandler<SocketDataController>, SocketApp {
 
@@ -68,7 +68,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * The constructor.
-     * 
+     *
      * @param protocol The protocol on this socket channel.
      * @param manager Protocol manager.
      * @param aliasName Alias name.
@@ -82,11 +82,12 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * The constructor.
-     * 
+     *
      * @param protocol The protocol on this socket channel.
      * @param manager Protocol manager.
      * @param aliasName Alias name.
      * @param clientPort Client port.
+     * @throws IOException
      */
     public SocketClient(
             final Protocol<SocketDataController> protocol,
@@ -101,12 +102,11 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
         this.callIns = new HashMap<String, MessageCallIn<SocketDataController>>();
         this.callOuts = new HashMap<String, MessageCallOut>();
         this.started = false;
-
     }
 
     /**
      * Get name.
-     * 
+     *
      * @return The name.
      */
     public String getName() {
@@ -147,7 +147,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Get protocol on this socket channel.
-     * 
+     *
      * @return The protocol.
      */
     public Protocol<SocketDataController> getProtocol() {
@@ -156,7 +156,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Register call in worker.
-     * 
+     *
      * @param callIn The call in worker.
      */
     public void registerCallin(MessageCallIn<SocketDataController> callIn) {
@@ -173,7 +173,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Connect to specific socket server.
-     * 
+     *
      * @param address Address.
      * @param port Port no.
      * @return True if connect success or connected already.
@@ -183,6 +183,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
         this.addr = address;
         this.port = port;
+        this.started = false;
 
         return tryConnect();
     }
@@ -193,6 +194,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
      */
     public boolean tryConnect() {
         if (this.addr == null) {
+            this.started = false;
             return false;
         }
 
@@ -202,21 +204,22 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
         try {
             this.ch = SocketChannel.open();
-            if (this.clientPort > 0) {
+            if (this.clientPort > 0) {              // with specific port
                 this.ch.socket().bind(new InetSocketAddress(this.clientPort));
             }
 
-            this.ch.configureBlocking(true);
-            this.ch.socket().connect(new InetSocketAddress(InetAddress.getByName(this.addr), this.port), 1000);
+            // this.ch.configureBlocking(true);     // default is true ?!
+            this.ch.socket().connect(new InetSocketAddress(InetAddress.getByName(this.addr), this.port), 2000);
             this.ch.configureBlocking(false);
 
             /**
             this.ch.configureBlocking(false);
-            this.ch.connect(new InetSocketAddress(InetAddress.getByName(address), port));
+            this.ch.connect(new InetSocketAddress(InetAddress.getByName(this.addr), this.port));
             // must have in non-blocking mode!!
             while (!this.ch.finishConnect()) {
             }
-            */
+             */
+
             this.controller = new SocketDataController(
                     this.aliasName,
                     this,
@@ -243,22 +246,22 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
         }
         catch (Exception ex) {
             if (this.clientPort > 0) {
-                logger.error(String.format("%s> connect to %s:%s(%d) failure.",
+                logger.error(String.format("%s> connect to %s:%s(%d) failure. ex:%s",
                         this.aliasName,
                         this.addr,
                         this.port,
-                        this.clientPort));
+                        this.clientPort,
+                        ex.getMessage()));
             }
             else {
-                logger.error(String.format("%s> connect to %s:%s failure.",
+                logger.error(String.format("%s> connect to %s:%s failure. ex:%s",
                         this.aliasName,
                         this.addr,
-                        this.port));
+                        this.port,
+                        ex.getMessage()));
 
             }
-            this.started = false;
-            this.ch = null;
-            this.controller = null;
+            disconnect();
             return false;
         }
     }
@@ -267,13 +270,12 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
      * Disconnect to socket server. This will clear address and port information.
      */
     public void disconnect() {
-        if (!this.started || this.ch == null) {
+        if (!this.started) {
             return;
         }
 
         try {
             this.controller.stop();
-            this.ch.close();
             logger.info(String.format("%s> disconnect", this.aliasName));
         }
         catch (Exception ex) {
@@ -290,7 +292,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Send data to socket server.
-     * 
+     *
      * @param data Data.
      * @return Send result.
      * @throws SocketException Raise when server is not connected.
@@ -301,7 +303,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Send data to socket server.
-     * 
+     *
      * @param data Data.
      * @param times Retry times.
      * @return Send result.
@@ -328,7 +330,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * send data to socket server and wait result.
-     * 
+     *
      * @param data Data.
      * @param txId Transaction id.
      * @param timeout Timeout milliseconds.
@@ -372,7 +374,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Send data to socket server.
-     * 
+     *
      * @param data Data.
      * @param callOut Reply message worker.
      * @param timeout Timeout seconds.
@@ -512,9 +514,10 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
                 iterator.remove();
 
                 try {
+                    // TODO: handle close
                     this.controller.receive();
                 }
-                catch (IOException e) {
+                catch (IOException ex) {
 
                 }
             }
@@ -530,7 +533,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             InetAddress address = InetAddress.getByName(ip);
             return address.isReachable(3000);
         }
-        catch (Exception e) {
+        catch (Exception ex) {
             return false;
         }
     }

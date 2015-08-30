@@ -16,11 +16,11 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -35,10 +35,16 @@ import uia.utils.ByteUtils;
 
 /**
  * The socket server
- * 
+ *
  * @author Kyle K. Lin
  */
 public class SocketServer implements ProtocolEventHandler<SocketDataController>, SocketApp {
+
+    public enum ConnectionStyle {
+        NORMAL,
+        ONE_EACH_CLIENT,
+        ONLYONE
+    }
 
     private final static Logger logger = Logger.getLogger(SocketServer.class);
 
@@ -46,9 +52,9 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     private final MessageManager manager;
 
-    private final HashMap<String, MessageCallIn<SocketDataController>> callIns;
+    private final TreeMap<String, MessageCallIn<SocketDataController>> callIns;
 
-    private final HashMap<String, HashMap<String, MessageCallOut>> clientCallouts;
+    private final TreeMap<String, TreeMap<String, MessageCallOut>> clientCallouts;
 
     private final ArrayList<SocketServerListener> listeners;
 
@@ -58,19 +64,29 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     private ServerSocketChannel ch;
 
-    private final HashMap<String, SocketDataController> controllers;
+    private final TreeMap<String, SocketDataController> controllers;
 
     private final String aliasName;
 
     private final Timer polling;
 
+    private ConnectionStyle connectionStyle;
+
     static {
 
     }
 
+    public SocketServer(
+            Protocol<SocketDataController> protocol,
+            int port,
+            MessageManager manager,
+            String aliasName) throws Exception {
+        this(protocol, port, manager, aliasName, ConnectionStyle.NORMAL);
+    }
+
     /**
      * Constructor.
-     * 
+     *
      * @param protocol The protocol on this socket channel.
      * @param port Socket port.
      * @param manager Protocol manager.
@@ -81,16 +97,18 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
             Protocol<SocketDataController> protocol,
             int port,
             MessageManager manager,
-            String aliasName) throws Exception {
+            String aliasName,
+            ConnectionStyle connectionStyle) throws Exception {
         this.aliasName = aliasName;
         this.polling = new Timer();
         this.protocol = protocol;
         this.protocol.addMessageHandler(this);
         this.manager = manager;
-        this.callIns = new HashMap<String, MessageCallIn<SocketDataController>>();
-        this.clientCallouts = new HashMap<String, HashMap<String, MessageCallOut>>();
+        this.callIns = new TreeMap<String, MessageCallIn<SocketDataController>>();
+        this.clientCallouts = new TreeMap<String, TreeMap<String, MessageCallOut>>();
         this.started = false;
-        this.controllers = new HashMap<String, SocketDataController>();
+        this.connectionStyle = connectionStyle;
+        this.controllers = new TreeMap<String, SocketDataController>();
         this.listeners = new ArrayList<SocketServerListener>();
 
         this.serverSelector = Selector.open();
@@ -103,7 +121,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Get name.
-     * 
+     *
      * @return The name.
      */
     public String getName() {
@@ -112,7 +130,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Get protocol on this socket channel.
-     * 
+     *
      * @return The protocol.
      */
     public Protocol<SocketDataController> getProtocol() {
@@ -121,7 +139,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Add a listener of states of server.
-     * 
+     *
      * @param listener The listener.
      */
     public void addServerListener(SocketServerListener listener) {
@@ -130,7 +148,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Remove a listener of states of server.
-     * 
+     *
      * @param listener The listener.
      */
     public void removeServerListener(SocketServerListener listener) {
@@ -139,7 +157,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Register call in worker to handle message send from client actively.
-     * 
+     *
      * @param callIn Call in worker.
      */
     public void registerCallin(MessageCallIn<SocketDataController> callIn) {
@@ -148,7 +166,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Send data to specific socket client.
-     * 
+     *
      * @param clientName Client name.
      * @param data Data.
      * @return Send success or not.
@@ -160,7 +178,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Send data to specific socket client.
-     * 
+     *
      * @param clientName Client name.
      * @param data Data.
      * @param times Retry times.
@@ -182,7 +200,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * send data to socket server and wait result.
-     * 
+     *
      * @param clientName Client name.
      * @param data Data to be sent.
      * @param txId Transaction id.
@@ -203,9 +221,9 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
         MessageCallOutConcurrent callout = new MessageCallOutConcurrent(txId, timeout);
         ExecutorService threadPool = Executors.newSingleThreadExecutor();
 
-        HashMap<String, MessageCallOut> callOuts = this.clientCallouts.get(clientName);
+        TreeMap<String, MessageCallOut> callOuts = this.clientCallouts.get(clientName);
         if (callOuts == null) {
-            callOuts = new HashMap<String, MessageCallOut>();
+            callOuts = new TreeMap<String, MessageCallOut>();
             this.clientCallouts.put(clientName, callOuts);
         }
 
@@ -239,7 +257,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Send data to specific socket client.
-     * 
+     *
      * @param clientName Client name.
      * @param data Data
      * @param callOut Reply data worker.
@@ -257,9 +275,9 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
             throw new SocketException(clientName + "> missing");
         }
 
-        HashMap<String, MessageCallOut> callOuts = this.clientCallouts.get(clientName);
+        TreeMap<String, MessageCallOut> callOuts = this.clientCallouts.get(clientName);
         if (callOuts == null) {
-            callOuts = new HashMap<String, MessageCallOut>();
+            callOuts = new TreeMap<String, MessageCallOut>();
             this.clientCallouts.put(clientName, callOuts);
         }
         final String tx = callOut.getTxId();
@@ -267,7 +285,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
             callOuts.put(tx, callOut);
         }
 
-        final HashMap<String, MessageCallOut> callOutsRef = callOuts;
+        final TreeMap<String, MessageCallOut> callOutsRef = callOuts;
         if (controller.send(data, 1)) {
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
@@ -320,9 +338,9 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
         // polling
         /**
          * this.polling.schedule(new TimerTask() {
-         * 
+         *
          * @Override public void run() { polling(); }
-         * 
+         *
          *           }, 5000, 60000);
          */
 
@@ -331,7 +349,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
     /**
      * Disconnect specific socket client.
-     * 
+     *
      * @param clientName Client name.
      */
     public void disconnect(String clientName) {
@@ -339,9 +357,18 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
         synchronized (this.controllers) {
             controller = this.controllers.remove(clientName);
         }
+
+        this.callIns.remove(clientName);
+        this.clientCallouts.remove(clientName);
+
         if (controller != null) {
-            logger.info(String.format("%s> %s disconnected", this.aliasName, clientName));
+            // logger.info(String.format("%s> %s disconnected", this.aliasName, clientName));
+            SelectionKey key = controller.getChannel().keyFor(this.serverSelector);
+            if (key != null) {
+                key.cancel();
+            }
             controller.stop();
+
             raiseDisconnected(controller);
         }
     }
@@ -430,7 +457,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
             }).start();
         }
         else {
-            HashMap<String, MessageCallOut> callOuts = this.clientCallouts.get(monitor.getController().getName());
+            TreeMap<String, MessageCallOut> callOuts = this.clientCallouts.get(monitor.getController().getName());
             if (callOuts == null) {
                 logger.debug(String.format("%s> %s> not found",
                         this.aliasName,
@@ -526,71 +553,79 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
                 continue;
             }
 
+            if (!this.serverSelector.isOpen()) {
+                continue;
+
+            }
+
             Iterator<SelectionKey> iter = this.serverSelector.selectedKeys().iterator();
             while (iter.hasNext()) {
                 SelectionKey key = iter.next();
                 iter.remove();
 
-                if (key.isAcceptable()) {
-                    clientConnected((ServerSocketChannel) key.channel());
+                try {
+                    if (key.isAcceptable()) {
+                        ServerSocketChannel client = (ServerSocketChannel) key.channel();
+                        SocketChannel ch = client.accept();
+                        clientConnected(ch);
+                    }
+                    else if (key.isReadable()) {
+                        SocketDataController controller = (SocketDataController) key.attachment();
+                        if (!controller.receive()) {
+                            disconnect(controller.getName());
+                        }
+                    }
                 }
-                else if (key.isReadable()) {
-                    SocketDataController controller = (SocketDataController) key.attachment();
-                    //logger.debug(String.format("%s> %s> readable",
-                    //        this.aliasName,
-                    //        controller.getName()));
-                    try {
-                        controller.receive();
-                    }
-                    catch (Exception ex) {
-
-                    }
+                catch (Exception ex) {
+                    logger.error(String.format("%s> running failure, %s", this.aliasName, ex.getMessage()));
                 }
             }
         }
     }
 
-    private void clientConnected(ServerSocketChannel server) {
+    private void clientConnected(SocketChannel client) {
         try {
-            SocketChannel client = server.accept();
             client.configureBlocking(false);
+            String clientId = "";
+            if (this.connectionStyle == ConnectionStyle.ONE_EACH_CLIENT) {
+                clientId = client.socket().getInetAddress().getHostAddress();
 
-            String clientId = client.socket().getRemoteSocketAddress().toString();
-            logger.info(String.format("%s> %s connected", this.aliasName, clientId));
-
-            SocketDataController controller = null;
-            synchronized (this.controllers) {
-                controller = this.controllers.remove(clientId);
             }
-            if (controller != null) {
-                try {
-                    controller.stop();
-                }
-                finally {
-                    logger.info(String.format("%s> %s controller removed", this.aliasName, clientId));
+            else {
+                clientId = client.socket().getRemoteSocketAddress().toString();
+
+            }
+            disconnect(clientId);
+
+            if (this.connectionStyle == ConnectionStyle.ONLYONE) {
+                for (String key : this.controllers.keySet()) {
+                    disconnect(key);
                 }
             }
 
-            controller = new SocketDataController(
+            SocketDataController controller = new SocketDataController(
                     clientId,
                     this,
                     client,
                     this.manager,
                     this.protocol.createMonitor(clientId));
+
             synchronized (this.controllers) {
                 this.controllers.put(clientId, controller);
             }
-            logger.info(String.format("%s> %s controller added", this.aliasName, clientId));
 
             // use internal selector
             // controller.start();
             // use server selector
             client.register(this.serverSelector, SelectionKey.OP_READ, controller);
 
+            logger.info(String.format("%s> %s controller added", this.aliasName, clientId));
+
             raiseConnected(controller);
+
         }
         catch (Exception ex) {
-            logger.error(String.format("%s> client connected failure. ex:%s", this.aliasName, ex.getMessage()));
+            logger.error(String.format("%s> client connected failure.", this.aliasName), ex);
         }
     }
 

@@ -24,30 +24,30 @@ import org.apache.log4j.Logger;
 import uia.comm.protocol.ProtocolMonitor;
 
 /**
- * 
+ *
  * @author Kyle
- * 
+ *
  */
 public class SocketDataController {
 
     private final static Logger logger = Logger.getLogger(SocketDataController.class);
 
+    private final ProtocolMonitor<SocketDataController> monitor;
+
     private final String name;;
 
     private boolean started;
 
-    private final Selector selector;
+    private Selector selector;
 
     private MessageManager mgr;
-
-    private final ProtocolMonitor<SocketDataController> monitor;
 
     private SocketApp app;
 
     private SocketChannel ch;
 
     /**
-     * 
+     *
      * @param name Name.
      * @param app Socket client or server.
      * @param ch Socket channel used to receive and send message.
@@ -64,10 +64,8 @@ public class SocketDataController {
         this.name = name;
         this.app = app;
         this.started = false;
-        this.selector = Selector.open();
         this.ch = ch;
         this.ch.configureBlocking(false);
-        this.ch.register(this.selector, SelectionKey.OP_READ);
         this.mgr = mgr;
         this.monitor = monitor;
         this.monitor.setController(this);
@@ -83,7 +81,7 @@ public class SocketDataController {
 
     /**
      * Send data to remote.
-     * 
+     *
      * @param data Data.
      * @param times Retry times.
      * @return Success or not.
@@ -113,13 +111,22 @@ public class SocketDataController {
 
     /**
      * Start this controller using internal selector.
-     * 
+     *
      * @return true if start success first time.
      */
     synchronized boolean start() {
         if (this.ch == null || this.started) {
             return false;
         }
+
+        try {
+            this.selector = Selector.open();
+            this.ch.register(this.selector, SelectionKey.OP_READ);
+        }
+        catch (Exception ex) {
+            return false;
+        }
+
         this.started = true;
         new Thread(new Runnable() {
 
@@ -138,8 +145,11 @@ public class SocketDataController {
     synchronized void stop() {
         if (this.ch != null) {
             try {
+                if (this.selector != null) {
+                    this.ch.keyFor(this.selector).cancel();
+                    this.selector.close();
+                }
                 this.ch.close();
-                this.ch.keyFor(this.selector).cancel();
             }
             catch (Exception ex) {
 
@@ -151,12 +161,12 @@ public class SocketDataController {
 
     /**
      * Receive message from socket channel.
-     * 
+     *
      * @throws IOException
      */
-    synchronized void receive() throws IOException {
+    synchronized boolean receive() throws IOException {
         if (this.ch == null) {
-            return;
+            return false;
         }
 
         int len = 0;
@@ -170,10 +180,14 @@ public class SocketDataController {
                     this.monitor.read(b);
                 }
             }
+            else if (len < 0) {
+                return false;
+            }
             buffer.clear();
         }
         while (len > 0);
         this.monitor.readEnd();
+        return true;
     }
 
     SocketChannel getChannel() {
@@ -196,18 +210,20 @@ public class SocketDataController {
                 continue;
             }
 
-            Iterator<SelectionKey> iterator = this.selector.selectedKeys().iterator();
-            while (iterator.hasNext()) {
-                SelectionKey selectionKey = iterator.next();
-                @SuppressWarnings("unused")
-                SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
-                iterator.remove();
+            if (this.selector.isOpen()) {
+                Iterator<SelectionKey> iterator = this.selector.selectedKeys().iterator();
+                while (iterator.hasNext()) {
+                    SelectionKey selectionKey = iterator.next();
+                    @SuppressWarnings("unused")
+                    SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+                    iterator.remove();
 
-                try {
-                    receive();
-                }
-                catch (IOException e) {
+                    try {
+                        receive();
+                    }
+                    catch (IOException e) {
 
+                    }
                 }
             }
         }

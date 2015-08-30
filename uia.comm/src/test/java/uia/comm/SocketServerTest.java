@@ -9,10 +9,13 @@
  *******************************************************************************/
 package uia.comm;
 
+import java.util.ArrayList;
+
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.Test;
 
+import uia.comm.SocketServer.ConnectionStyle;
 import uia.comm.my.MyManager;
 import uia.comm.protocol.ng.NGProtocol;
 
@@ -26,6 +29,8 @@ public class SocketServerTest {
 
     private final MyManager manager;
 
+    private SocketDataController controller;
+
     public SocketServerTest() {
         PropertyConfigurator.configure("log4j.properties");
 
@@ -36,10 +41,10 @@ public class SocketServerTest {
     }
 
     @Test
-    public void testConnect() throws Exception {
+    public void testCreate() throws Exception {
         SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c1");
 
-        SocketServer server = create();
+        SocketServer server = create(ConnectionStyle.NORMAL);
         System.out.println("svr start:" + server.start());
 
         Thread.sleep(1000);
@@ -49,7 +54,7 @@ public class SocketServerTest {
 
         server.stop();
 
-        server = create();
+        server = create(ConnectionStyle.NORMAL);
         System.out.println("svr start:" + server.start());
 
         Thread.sleep(1000);
@@ -58,29 +63,148 @@ public class SocketServerTest {
         client.disconnect();
 
         server.stop();
-
-        //SocketServer server1 = create();
-        //System.out.println("svr1 start:" + server1.start());
-        //Thread.sleep(1000);
-        //SocketServer server2 = create();
-        //System.out.println("svr2 start:" + server2.start());
-        //Thread.sleep(1000);
-        //server1.stop();
-
     }
 
-    private SocketServer create() throws Exception {
-        SocketServer server = new SocketServer(this.serverProtocol, 5953, this.manager, "TestServer");
+    @Test
+    public void testOnlyOne() throws Exception {
+        SocketServer server = create(ConnectionStyle.ONLYONE);
+        System.out.println("svr:" + server.start());
+
+        System.out.println("-- create 16360 connections and keep open state --");
+        ArrayList<SocketClient> data = new ArrayList<SocketClient>();
+        for (int i = 0; i < 16360; i++) {
+            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c1");
+            System.out.println(i + ":" + client.connect("localhost", 5953));
+            data.add(client);
+        }
+        Thread.sleep(2000);
+
+        System.out.println("-- disconnect first 100 connections --");
+        for (int i = 0; i < 100; i++) {
+            SocketClient old = data.remove(0);
+            old.disconnect();
+        }
+        Thread.sleep(2000);
+
+        System.out.println("-- close and create coneection one by one --");
+        for (int i = 0; i < 1000; i++) {
+            SocketClient old = data.remove(0);
+            old.disconnect();
+
+            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c1");
+            System.out.println(i + ":" + client.connect("localhost", 5953));
+            data.add(client);
+        }
+
+        server.stop();
+    }
+
+    @Test
+    public void testOneEachClient() throws Exception {
+        SocketServer server = create(ConnectionStyle.ONE_EACH_CLIENT);
+        System.out.println("svr:" + server.start());
+
+        ArrayList<SocketClient> data = new ArrayList<SocketClient>();
+        for (int i = 0; i < 16360; i++) {
+            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c1");
+            System.out.println(i + ":" + client.connect("localhost", 5953));
+            data.add(client);
+        }
+        Thread.sleep(2000);
+
+        System.out.println("--");
+        for (int i = 0; i < 100; i++) {
+            SocketClient old = data.remove(0);
+            old.disconnect();
+        }
+        Thread.sleep(2000);
+
+        System.out.println("--");
+        for (int i = 0; i < 1000; i++) {
+            SocketClient old = data.remove(0);
+            old.disconnect();
+
+            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c1");
+            System.out.println(i + ":" + client.connect("localhost", 5953));
+            data.add(client);
+        }
+
+        server.stop();
+    }
+
+    @Test
+    public void testNormal() throws Exception {
+        SocketServer server = create(ConnectionStyle.NORMAL);
+        server.start();
+
+        System.out.println("-- create 16200 connections and keep open state --");
+        ArrayList<SocketClient> data = new ArrayList<SocketClient>();
+        for (int i = 0; i < 16200; i++) {
+            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c1");
+            System.out.println(i + ":" + client.connect("localhost", 5953));
+            data.add(client);
+        }
+        Thread.sleep(2000);
+
+        System.out.println("-- disconnect first 100 connections --");
+        for (int i = 0; i < 100; i++) {
+            SocketClient old = data.remove(0);
+            old.disconnect();
+        }
+        Thread.sleep(2000);
+
+        System.out.println("-- close and create coneection one by one --");
+        for (int i = 0; i < 1000; i++) {
+            SocketClient old = data.remove(0);
+            old.disconnect();
+
+            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c1");
+            System.out.println(i + ":" + client.connect("localhost", 5953));
+            data.add(client);
+        }
+
+        server.stop();
+    }
+
+    @Test
+    public void testNormaFlow1() throws Exception {
+        SocketServer server = create(ConnectionStyle.ONLYONE);
+        server.start();
+
+        for (int i = 0; i < 16200; i++) {
+            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c1");
+            System.out.println(i + ":" + client.connect("localhost", 5953));
+        }
+        Thread.sleep(2000);
+
+        for (int i = 0; i < 200; i++) {
+            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c1");
+            System.out.println(i + ":" + client.connect("localhost", 5953));
+            client.disconnect();
+        }
+
+        server.stop();
+    }
+
+    private SocketServer create(ConnectionStyle cs) throws Exception {
+        final SocketServer server = new SocketServer(
+                this.serverProtocol,
+                5953,
+                this.manager,
+                "TestServer",
+                cs);
         server.addServerListener(new SocketServerListener() {
 
             @Override
             public void connected(SocketDataController controller) {
-                logger.info(controller.getName() + " connected");
+                if (SocketServerTest.this.controller != null) {
+                    server.disconnect(SocketServerTest.this.controller.getName());
+                }
+                SocketServerTest.this.controller = controller;
             }
 
             @Override
             public void disconnected(SocketDataController controller) {
-                logger.info(controller.getName() + " disconnected");
             }
 
         });
