@@ -577,7 +577,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
                     }
                 }
                 catch (Exception ex) {
-                    logger.error(String.format("%s> running failure, %s", this.aliasName, ex.getMessage()));
+
                 }
             }
         }

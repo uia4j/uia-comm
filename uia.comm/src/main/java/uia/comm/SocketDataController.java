@@ -180,9 +180,6 @@ public class SocketDataController {
                     this.monitor.read(b);
                 }
             }
-            else if (len < 0) {
-                return false;
-            }
             buffer.clear();
         }
         while (len > 0);
