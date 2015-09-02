@@ -267,7 +267,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
     }
 
     /**
-     * Disconnect to socket server. This will clear address and port information.
+     * Disconnect to socket server.
      */
     public void disconnect() {
         if (!this.started) {
