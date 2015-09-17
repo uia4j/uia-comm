@@ -270,7 +270,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
      * Disconnect to socket server.
      */
     public void disconnect() {
-        if (!this.started) {
+        if (!this.started || this.controller == null) {
             return;
         }
 

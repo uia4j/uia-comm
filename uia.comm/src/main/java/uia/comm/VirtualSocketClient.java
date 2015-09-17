@@ -7,7 +7,7 @@ import org.apache.log4j.Logger;
 import uia.utils.ByteUtils;
 
 /**
- * 
+ *
  * @author Kan
  *
  */
@@ -24,6 +24,10 @@ public class VirtualSocketClient {
     }
 
     public void add(SocketClient client) {
+        if (client == null) {
+            return;
+        }
+
         if (this.activeClient == null) {
             this.activeClient = client;
         }
@@ -48,7 +52,9 @@ public class VirtualSocketClient {
     }
 
     public void disconnect() {
-        this.activeClient.disconnect();
+        if (this.activeClient != null) {
+            this.activeClient.disconnect();
+        }
     }
 
     public void switchClient() {
@@ -127,6 +133,10 @@ public class VirtualSocketClient {
     }
 
     private boolean nextClient(SocketClient checkOne) {
+        if (this.queues.size() < 2) {
+            return false;
+        }
+
         SocketClient client = this.queues.poll();
         this.activeClient = this.queues.peek();
         this.queues.add(client);
