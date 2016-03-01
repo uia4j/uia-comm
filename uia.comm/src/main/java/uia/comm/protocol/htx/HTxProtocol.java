@@ -24,64 +24,30 @@
  * * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-package uia.comm;
+package uia.comm.protocol.htx;
 
-import java.util.concurrent.Callable;
+import uia.comm.protocol.AbstractProtocol;
+import uia.comm.protocol.ProtocolMonitor;
 
-class MessageCallOutConcurrent implements MessageCallOut, Callable<byte[]> {
+public class HTxProtocol<C> extends AbstractProtocol<C> {
 
-    private final String txId;
+    final byte head;
 
-    private final long timeout;
+    final int hc;
 
-    private byte[] result;
+    final byte tail;
 
-    private int state;  // 0: execute, 1: handled, -1: timeout.
-
-    MessageCallOutConcurrent(String txId, long timeout) {
-        this.txId = txId;
-        this.timeout = timeout;
-        this.state = 0;
+    public HTxProtocol(byte head, int hc, byte tail) {
+        this.head = head;
+        this.hc = hc;
+        this.tail = tail;
     }
 
     @Override
-    public byte[] call() throws Exception {
-        synchronized (this.txId) {
-            if (this.state != 0) {
-                return this.result;
-            }
-
-            this.txId.wait(this.timeout + 20);
-            if (this.state == 0) {
-                this.state = -1;
-            }
-        }
-        return this.result;
+    public ProtocolMonitor<C> createMonitor(String name) {
+        HTxProtocolMonitor<C> monitor = new HTxProtocolMonitor<C>(name, this);
+        monitor.setProtocol(this);
+        return monitor;
     }
 
-    @Override
-    public String getTxId() {
-        return this.txId;
-    }
-
-    @Override
-    public void execute(byte[] reply) {
-        synchronized (this.txId) {
-            if (this.state == 0) {
-                this.state = 1;
-                this.result = reply;
-            }
-            this.txId.notifyAll();
-        }
-    }
-
-    @Override
-    public void timeout() {
-        synchronized (this.txId) {
-            if (this.state == 0) {
-                this.state = -1;
-            }
-            this.txId.notifyAll();
-        }
-    }
 }

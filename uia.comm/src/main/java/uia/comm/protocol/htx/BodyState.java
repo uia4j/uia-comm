@@ -24,64 +24,46 @@
  * * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-package uia.comm;
+package uia.comm.protocol.htx;
 
-import java.util.concurrent.Callable;
+import uia.comm.protocol.ProtocolEventArgs;
 
-class MessageCallOutConcurrent implements MessageCallOut, Callable<byte[]> {
+public class BodyState<C> implements HTxState<C> {
 
-    private final String txId;
+    private int headIdx;
 
-    private final long timeout;
-
-    private byte[] result;
-
-    private int state;  // 0: execute, 1: handled, -1: timeout.
-
-    MessageCallOutConcurrent(String txId, long timeout) {
-        this.txId = txId;
-        this.timeout = timeout;
-        this.state = 0;
+    public BodyState() {
+        this.headIdx = 0;
     }
 
     @Override
-    public byte[] call() throws Exception {
-        synchronized (this.txId) {
-            if (this.state != 0) {
-                return this.result;
-            }
+    public void accept(HTxProtocolMonitor<C> monitor, byte one) {
+        if (one == monitor.protocol.head)
+        {
+            this.headIdx++;
+        }
+        else
+        {
+            this.headIdx = 0;
+        }
 
-            this.txId.wait(this.timeout + 20);
-            if (this.state == 0) {
-                this.state = -1;
+        if (this.headIdx > 0 && this.headIdx == monitor.protocol.hc)
+        {
+            this.headIdx = 0;
+            monitor.addOne(one);
+            monitor.cancelPacking(ProtocolEventArgs.ErrorCode.ERR_HEAD_REPEAT);
+            for (int i = 0; i < monitor.protocol.hc; i++) {
+                monitor.addOne(one);
             }
         }
-        return this.result;
-    }
-
-    @Override
-    public String getTxId() {
-        return this.txId;
-    }
-
-    @Override
-    public void execute(byte[] reply) {
-        synchronized (this.txId) {
-            if (this.state == 0) {
-                this.state = 1;
-                this.result = reply;
+        else {
+            if (one == monitor.protocol.tail) {
+                monitor.setState(new TailState<C>());
+                monitor.read(one);
             }
-            this.txId.notifyAll();
-        }
-    }
-
-    @Override
-    public void timeout() {
-        synchronized (this.txId) {
-            if (this.state == 0) {
-                this.state = -1;
+            else {
+                monitor.addOne(one);
             }
-            this.txId.notifyAll();
         }
     }
 }

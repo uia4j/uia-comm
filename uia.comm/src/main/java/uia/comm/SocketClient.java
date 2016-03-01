@@ -87,7 +87,6 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
      * @param manager Protocol manager.
      * @param aliasName Alias name.
      * @param clientPort Client port.
-     * @throws IOException
      */
     public SocketClient(
             final Protocol<SocketDataController> protocol,
@@ -178,7 +177,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
      * @param port Port no.
      * @return True if connect success or connected already.
      */
-    public boolean connect(String address, int port) {
+    public synchronized boolean connect(String address, int port) {
         disconnect();
 
         this.addr = address;
@@ -192,7 +191,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
      * Try connect to remote.
      * @return Connected or not.
      */
-    public boolean tryConnect() {
+    public synchronized boolean tryConnect() {
         if (this.addr == null) {
             this.started = false;
             return false;
@@ -246,7 +245,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
         }
         catch (Exception ex) {
             if (this.clientPort > 0) {
-                logger.error(String.format("%s> connect to %s:%s(%d) failure. ex:%s",
+                logger.error(String.format("%s> connect to %s:%s(%d) failure. %s",
                         this.aliasName,
                         this.addr,
                         this.port,
@@ -254,7 +253,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
                         ex.getMessage()));
             }
             else {
-                logger.error(String.format("%s> connect to %s:%s failure. ex:%s",
+                logger.error(String.format("%s> connect to %s:%s failure. %s",
                         this.aliasName,
                         this.addr,
                         this.port,
@@ -269,7 +268,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
     /**
      * Disconnect to socket server.
      */
-    public void disconnect() {
+    public synchronized void disconnect() {
         if (!this.started || this.controller == null) {
             return;
         }
@@ -357,6 +356,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
                     return future.get();
                 }
                 catch (Exception e) {
+                    logger.error(String.format("%s> callout failed", this.aliasName), e);
                     return null;
                 }
             }
@@ -366,6 +366,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             }
         }
         finally {
+            threadPool.shutdown();
             synchronized (this.callOuts) {
                 this.callOuts.remove(txId);
             }

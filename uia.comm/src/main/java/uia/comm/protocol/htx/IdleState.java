@@ -24,64 +24,16 @@
  * * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-package uia.comm;
+package uia.comm.protocol.htx;
 
-import java.util.concurrent.Callable;
-
-class MessageCallOutConcurrent implements MessageCallOut, Callable<byte[]> {
-
-    private final String txId;
-
-    private final long timeout;
-
-    private byte[] result;
-
-    private int state;  // 0: execute, 1: handled, -1: timeout.
-
-    MessageCallOutConcurrent(String txId, long timeout) {
-        this.txId = txId;
-        this.timeout = timeout;
-        this.state = 0;
-    }
+public class IdleState<C> implements HTxState<C> {
 
     @Override
-    public byte[] call() throws Exception {
-        synchronized (this.txId) {
-            if (this.state != 0) {
-                return this.result;
-            }
-
-            this.txId.wait(this.timeout + 20);
-            if (this.state == 0) {
-                this.state = -1;
-            }
-        }
-        return this.result;
-    }
-
-    @Override
-    public String getTxId() {
-        return this.txId;
-    }
-
-    @Override
-    public void execute(byte[] reply) {
-        synchronized (this.txId) {
-            if (this.state == 0) {
-                this.state = 1;
-                this.result = reply;
-            }
-            this.txId.notifyAll();
-        }
-    }
-
-    @Override
-    public void timeout() {
-        synchronized (this.txId) {
-            if (this.state == 0) {
-                this.state = -1;
-            }
-            this.txId.notifyAll();
+    public void accept(HTxProtocolMonitor<C> monitor, byte one) {
+        if (one == monitor.protocol.head) {
+            monitor.reset();
+            monitor.setState(new HeadState<C>());
+            monitor.read(one);
         }
     }
 }
