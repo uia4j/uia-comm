@@ -28,7 +28,7 @@ import uia.comm.protocol.ProtocolMonitor;
  * @author Kyle
  *
  */
-public class SocketDataController {
+public class SocketDataController implements DataController {
 
     private final static Logger logger = Logger.getLogger(SocketDataController.class);
 
@@ -71,21 +71,12 @@ public class SocketDataController {
         this.monitor.setController(this);
     }
 
-    /**
-     * Get name.
-     * @return Name of this controller.
-     */
+    @Override
     public String getName() {
         return this.name;
     }
 
-    /**
-     * Send data to remote.
-     *
-     * @param data Data.
-     * @param times Retry times.
-     * @return Success or not.
-     */
+    @Override
     public synchronized boolean send(byte[] data, int times) {
         final byte[] encoded = this.mgr.encode(data);
         while (times > 0) {

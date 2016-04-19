@@ -38,7 +38,7 @@ import uia.utils.ByteUtils;
  * @author Kyle
  *
  */
-public class SocketClient implements ProtocolEventHandler<SocketDataController>, SocketApp {
+public class SocketClient implements ProtocolEventHandler<SocketDataController>, SocketApp, CommClient {
 
     private final static Logger logger = Logger.getLogger(SocketClient.class);
 
