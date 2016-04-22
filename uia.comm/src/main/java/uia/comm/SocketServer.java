@@ -16,8 +16,8 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
@@ -38,7 +38,7 @@ import uia.utils.ByteUtils;
  *
  * @author Kyle K. Lin
  */
-public class SocketServer implements ProtocolEventHandler<SocketDataController>, SocketApp {
+public class SocketServer implements ProtocolEventHandler<SocketDataController> {
 
     public enum ConnectionStyle {
         NORMAL,
@@ -336,13 +336,14 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
         }).start();
 
         // polling
-        /**
-         * this.polling.schedule(new TimerTask() {
-         *
-         * @Override public void run() { polling(); }
-         *
-         *           }, 5000, 60000);
-         */
+        this.polling.schedule(new TimerTask() {
+
+            @Override
+            public void run() {
+                polling();
+            }
+
+        }, 5000, 60000);
 
         return true;
     }
@@ -431,6 +432,8 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
             return;
         }
 
+        monitor.getController().lastUpdate();
+
         if (this.manager.isCallIn(cmd)) {
             final MessageCallIn<SocketDataController> callIn = this.callIns.get(cmd);
             if (callIn == null) {
@@ -513,26 +516,18 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
         logger.debug(ByteUtils.toHexString(args.getData(), "-"));
     }
 
-    @Override
-    public void idle(SocketDataController controller) {
-        disconnect(controller.getName());
-    }
-
-    @SuppressWarnings("unused")
     private void polling() {
         if (this.started) {
             ArrayList<String> keys = new ArrayList<String>();
+            Collection<SocketDataController> controllers = this.controllers.values();
             synchronized (this.controllers) {
-                for (Map.Entry<String, SocketDataController> kvp : this.controllers.entrySet()) {
-                    try {
-                        // kvp.getValue().send(new byte[] { 0x00 });
-                    }
-                    catch (Exception ex) {
-                        keys.add(kvp.getKey());
+                for (SocketDataController controller : controllers) {
+                    if (controller.isIdle(60000)) {
+                        System.out.println(controller.getName() + " idle");
+                        keys.add(controller.getName());
                     }
                 }
             }
-            logger.debug(String.format("%s> polling(%d)", this.aliasName, this.controllers.size()));
 
             for (String key : keys) {
                 disconnect(key);
@@ -605,7 +600,6 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
             SocketDataController controller = new SocketDataController(
                     clientId,
-                    this,
                     client,
                     this.manager,
                     this.protocol.createMonitor(clientId));
@@ -625,6 +619,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController>,
 
         }
         catch (Exception ex) {
+            ex.printStackTrace();
             logger.error(String.format("%s> client connected failure.", this.aliasName), ex);
         }
     }

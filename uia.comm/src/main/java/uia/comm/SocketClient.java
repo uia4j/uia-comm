@@ -38,7 +38,7 @@ import uia.utils.ByteUtils;
  * @author Kyle
  *
  */
-public class SocketClient implements ProtocolEventHandler<SocketDataController>, SocketApp, CommClient {
+public class SocketClient implements ProtocolEventHandler<SocketDataController>, CommClient<SocketDataController> {
 
     private final static Logger logger = Logger.getLogger(SocketClient.class);
 
@@ -103,11 +103,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
         this.started = false;
     }
 
-    /**
-     * Get name.
-     *
-     * @return The name.
-     */
+    @Override
     public String getName() {
         return this.aliasName;
     }
@@ -142,32 +138,6 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
      */
     public void setPort(int port) {
         this.port = port;
-    }
-
-    /**
-     * Get protocol on this socket channel.
-     *
-     * @return The protocol.
-     */
-    public Protocol<SocketDataController> getProtocol() {
-        return this.protocol;
-    }
-
-    /**
-     * Register call in worker.
-     *
-     * @param callIn The call in worker.
-     */
-    public void registerCallin(MessageCallIn<SocketDataController> callIn) {
-        this.callIns.put(callIn.getCmdName(), callIn);
-    }
-
-    /**
-     * Is connected or not.
-     * @return Connect or not.
-     */
-    public boolean isConnected() {
-        return this.started;
     }
 
     /**
@@ -221,7 +191,6 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
             this.controller = new SocketDataController(
                     this.aliasName,
-                    this,
                     this.ch,
                     this.manager,
                     this.protocol.createMonitor(this.aliasName));
@@ -265,9 +234,22 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
         }
     }
 
-    /**
-     * Disconnect to socket server.
-     */
+    @Override
+    public Protocol<SocketDataController> getProtocol() {
+        return this.protocol;
+    }
+
+    @Override
+    public void registerCallin(MessageCallIn<SocketDataController> callIn) {
+        this.callIns.put(callIn.getCmdName(), callIn);
+    }
+
+    @Override
+    public boolean isConnected() {
+        return this.started;
+    }
+
+    @Override
     public synchronized void disconnect() {
         if (!this.started || this.controller == null) {
             return;
@@ -289,25 +271,12 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     }
 
-    /**
-     * Send data to socket server.
-     *
-     * @param data Data.
-     * @return Send result.
-     * @throws SocketException Raise when server is not connected.
-     */
+    @Override
     public boolean send(final byte[] data) throws SocketException {
         return send(data, 1);
     }
 
-    /**
-     * Send data to socket server.
-     *
-     * @param data Data.
-     * @param times Retry times.
-     * @return Send result.
-     * @throws SocketException Raise when server is not connected.
-     */
+    @Override
     public boolean send(final byte[] data, int times) throws SocketException {
         if (!this.started) {
             throw new SocketException(this.aliasName + "> is not started.");
@@ -327,15 +296,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
         }
     }
 
-    /**
-     * send data to socket server and wait result.
-     *
-     * @param data Data.
-     * @param txId Transaction id.
-     * @param timeout Timeout milliseconds.
-     * @return Reply data or Null if timeout.
-     * @throws SocketException Raise when server is not connected or send to server failure.
-     */
+    @Override
     public byte[] send(final byte[] data, String txId, long timeout) throws SocketException {
         if (!this.started) {
             throw new SocketException(this.aliasName + "> is not started.");
@@ -373,15 +334,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
         }
     }
 
-    /**
-     * Send data to socket server.
-     *
-     * @param data Data.
-     * @param callOut Reply message worker.
-     * @param timeout Timeout seconds.
-     * @return Send result.
-     * @throws SocketException Raise if not started.
-     */
+    @Override
     public boolean send(final byte[] data, final MessageCallOut callOut, long timeout) throws SocketException {
         if (!this.started) {
             throw new SocketException(this.aliasName + "> is not started.");
@@ -492,11 +445,6 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
         logger.debug("error data: " + ByteUtils.toHexString(args.getData(), "-"));
     }
 
-    @Override
-    public void idle(SocketDataController controller) {
-        // DO Nothing
-    }
-
     @SuppressWarnings("unused")
     private void running() {
         // use internal selector to handle received data.
@@ -522,20 +470,6 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
                 }
             }
-        }
-    }
-
-    public static boolean ping(String ip, int timeout) {
-        if (timeout < 0) {
-            timeout = 3000;
-        }
-
-        try {
-            InetAddress address = InetAddress.getByName(ip);
-            return address.isReachable(3000);
-        }
-        catch (Exception ex) {
-            return false;
         }
     }
 }

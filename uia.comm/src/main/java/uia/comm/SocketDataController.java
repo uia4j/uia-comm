@@ -16,8 +16,6 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import org.apache.log4j.Logger;
 
@@ -42,14 +40,13 @@ public class SocketDataController implements DataController {
 
     private MessageManager mgr;
 
-    private SocketApp app;
-
     private SocketChannel ch;
+
+    private long lastUpdate;
 
     /**
      *
      * @param name Name.
-     * @param app Socket client or server.
      * @param ch Socket channel used to receive and send message.
      * @param monitor Monitor used to handle received message.
      * @param idlePeriod
@@ -57,18 +54,17 @@ public class SocketDataController implements DataController {
      */
     SocketDataController(
             String name,
-            SocketApp app,
             SocketChannel ch,
             MessageManager mgr,
             ProtocolMonitor<SocketDataController> monitor) throws IOException {
         this.name = name;
-        this.app = app;
         this.started = false;
         this.ch = ch;
         this.ch.configureBlocking(false);
         this.mgr = mgr;
         this.monitor = monitor;
         this.monitor.setController(this);
+        this.lastUpdate = System.currentTimeMillis();
     }
 
     @Override
@@ -78,6 +74,7 @@ public class SocketDataController implements DataController {
 
     @Override
     public synchronized boolean send(byte[] data, int times) {
+        this.lastUpdate = System.currentTimeMillis();
         final byte[] encoded = this.mgr.encode(data);
         while (times > 0) {
             try {
@@ -110,6 +107,7 @@ public class SocketDataController implements DataController {
             return false;
         }
 
+        this.lastUpdate = System.currentTimeMillis();
         try {
             this.selector = Selector.open();
             this.ch.register(this.selector, SelectionKey.OP_READ);
@@ -128,6 +126,14 @@ public class SocketDataController implements DataController {
 
         }).start();
         return true;
+    }
+
+    void lastUpdate() {
+        this.lastUpdate = System.currentTimeMillis();
+    }
+
+    boolean isIdle(int timeout) {
+        return System.currentTimeMillis() - this.lastUpdate > timeout;
     }
 
     /**
@@ -182,12 +188,6 @@ public class SocketDataController implements DataController {
         return this.ch;
     }
 
-    private void idleOut() {
-        if (this.app != null) {
-            this.app.idle(this);
-        }
-    }
-
     private void running() {
         // use internal selector to handle received data.
         while (this.started) {
@@ -213,34 +213,6 @@ public class SocketDataController implements DataController {
 
                     }
                 }
-            }
-        }
-    }
-
-    class IdleTimer extends TimerTask {
-
-        private Timer timer;
-
-        private boolean stopped;
-
-        private IdleTimer(int period) {
-            this.timer = new Timer();
-            this.timer.schedule(this, period);
-        }
-
-        public void stop() {
-            this.stopped = true;
-            this.timer.cancel();
-            this.timer.purge();
-        }
-
-        @Override
-        public void run() {
-            if (!this.stopped) {
-                this.stopped = true;
-                this.timer.cancel();
-                this.timer.purge();
-                idleOut();
             }
         }
     }
