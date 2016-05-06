@@ -72,6 +72,8 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
     private ConnectionStyle connectionStyle;
 
+    private int idleTime;
+
     static {
 
     }
@@ -117,6 +119,16 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
         this.ch.socket().bind(new InetSocketAddress(port));
         this.ch.configureBlocking(false);
         this.ch.register(this.serverSelector, SelectionKey.OP_ACCEPT);
+
+        this.idleTime = 60000;
+    }
+
+    public void setIdleTime(int idleTime) {
+        this.idleTime = idleTime;
+    }
+
+    public int getIdleTime() {
+        return this.idleTime;
     }
 
     /**
@@ -522,8 +534,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
             Collection<SocketDataController> controllers = this.controllers.values();
             synchronized (this.controllers) {
                 for (SocketDataController controller : controllers) {
-                    if (controller.isIdle(60000)) {
-                        System.out.println(controller.getName() + " idle");
+                    if (controller.isIdle(this.idleTime)) {
                         keys.add(controller.getName());
                     }
                 }

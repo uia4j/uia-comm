@@ -25,6 +25,11 @@ import uia.comm.protocol.ProtocolEventHandler;
 import uia.comm.protocol.ProtocolMonitor;
 import uia.utils.ByteUtils;
 
+/**
+ *
+ * @author Kyle
+ *
+ */
 public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {
 
     private final static Logger logger = Logger.getLogger(RS232.class);
@@ -71,12 +76,13 @@ public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {
     }
 
     /**
-     * @param portName
-     * @param baudrate
-     * @param dataBits
-     * @param stopBits
-     * @param parity
-     * @return
+     * Connect.
+     * @param portName RS232 port name.
+     * @param baudrate Baud rate.
+     * @param dataBits Data bits.
+     * @param stopBits Stop bits.
+     * @param parity Parity.
+     * @return Success or not.
      * @throws Exception
      */
     public boolean connect(String portName, int baudrate, int dataBits, int stopBits, int parity) throws Exception {
@@ -85,7 +91,7 @@ public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {
         this.stopBits = stopBits;
         this.parity = parity;
 
-        this.monitor = this.protocol.createMonitor("");
+        this.monitor = this.protocol.createMonitor(this.aliasName);
         this.monitor.setController(this);
 
         if (this.started) {
