@@ -4,6 +4,12 @@ import java.net.SocketException;
 
 import uia.comm.protocol.Protocol;
 
+/**
+ * 
+ * @author Kyle
+ *
+ * @param <C>
+ */
 public interface CommClient<C> {
 
     /**

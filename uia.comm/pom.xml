@@ -82,15 +82,4 @@
 		<developerConnection>Kyle K. Lin</developerConnection>
 		<url>https://github.com/gazer2kanlin/uia.comm4j</url>
 	</scm>
-	<distributionManagement>
-		<repository>
-	        <id>bintray-gazer2kanlin-maven</id>
-	        <url>https://api.bintray.com/maven/gazer2kanlin/maven/uia.comm4j/;publish=1</url>
-		</repository>
-		<snapshotRepository>
-	        <id>bintray-gazer2kanlin-maven</id>
-	        <url>https://api.bintray.com/maven/gazer2kanlin/maven/uia.comm4j/;publish=1</url>
-	        <uniqueVersion>true</uniqueVersion>
-		</snapshotRepository>
-	</distributionManagement>	
 </project>

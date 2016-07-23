@@ -26,6 +26,11 @@
  *******************************************************************************/
 package uia.comm;
 
+/**
+ * 
+ * @author Kyle
+ *
+ */
 public abstract class AbsractMessageManager implements MessageManager {
 
 	@Override
