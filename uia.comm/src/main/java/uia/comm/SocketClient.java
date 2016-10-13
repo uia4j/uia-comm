@@ -260,7 +260,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             logger.info(String.format("%s> disconnect", this.aliasName));
         }
         catch (Exception ex) {
-
+            logger.error(String.format("%s> disconnect - %s", this.aliasName, ex));
         }
         finally {
             this.started = false;

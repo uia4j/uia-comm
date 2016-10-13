@@ -54,13 +54,13 @@ public class SocketServerTest {
 
         server.stop();
 
-        server = create(ConnectionStyle.NORMAL);
+        server.start();
         System.out.println("svr start:" + server.start());
 
         Thread.sleep(1000);
         System.out.println("clnt:" + client.connect("localhost", 5953));
         Thread.sleep(1000);
-        client.disconnect();
+        // client.disconnect();
 
         server.stop();
     }

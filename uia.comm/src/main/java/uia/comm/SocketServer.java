@@ -48,6 +48,8 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
     private final static Logger logger = Logger.getLogger(SocketServer.class);
 
+    private final int port;
+
     private final Protocol<SocketDataController> protocol;
 
     private final MessageManager manager;
@@ -58,19 +60,19 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
     private final ArrayList<SocketServerListener> listeners;
 
+    private final TreeMap<String, SocketDataController> controllers;
+
+    private final String aliasName;
+
+    private final ConnectionStyle connectionStyle;
+
     private boolean started;
 
     private Selector serverSelector;
 
     private ServerSocketChannel ch;
 
-    private final TreeMap<String, SocketDataController> controllers;
-
-    private final String aliasName;
-
-    private final Timer polling;
-
-    private ConnectionStyle connectionStyle;
+    private Timer polling;
 
     private int idleTime;
 
@@ -102,7 +104,6 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
             String aliasName,
             ConnectionStyle connectionStyle) throws Exception {
         this.aliasName = aliasName;
-        this.polling = new Timer();
         this.protocol = protocol;
         this.protocol.addMessageHandler(this);
         this.manager = manager;
@@ -113,14 +114,12 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
         this.controllers = new TreeMap<String, SocketDataController>();
         this.listeners = new ArrayList<SocketServerListener>();
 
-        this.serverSelector = Selector.open();
-
-        this.ch = ServerSocketChannel.open();
-        this.ch.socket().bind(new InetSocketAddress(port));
-        this.ch.configureBlocking(false);
-        this.ch.register(this.serverSelector, SelectionKey.OP_ACCEPT);
-
         this.idleTime = 60000;
+        this.port = port;
+    }
+
+    public boolean exists(String socketId) {
+        return this.controllers.containsKey(socketId);
     }
 
     public void setIdleTime(int idleTime) {
@@ -324,16 +323,38 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
     }
 
     /**
+     * Check if server is started or not.
+     * @return Started or not.
+     */
+    public boolean isStarted() {
+        return this.started;
+    }
+
+    /**
      * Start this server.
      * @return Success or not.
      */
     public boolean start() {
-        if (this.serverSelector == null) {
-            return false;
-        }
-
         if (this.started) {
             return true;
+        }
+
+        this.controllers.clear();
+        this.clientCallouts.clear();
+
+        try {
+            this.serverSelector = Selector.open();
+            if (this.serverSelector == null) {
+                return false;
+            }
+
+            this.ch = ServerSocketChannel.open();
+            this.ch.socket().bind(new InetSocketAddress(this.port));
+            this.ch.configureBlocking(false);
+            this.ch.register(this.serverSelector, SelectionKey.OP_ACCEPT);
+        }
+        catch (Exception ex) {
+            return false;
         }
 
         this.started = true;
@@ -348,6 +369,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
         }).start();
 
         // polling
+        this.polling = new Timer();
         this.polling.schedule(new TimerTask() {
 
             @Override
@@ -390,28 +412,36 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
      * Stop this server. It always stop all clients connected.
      */
     public void stop() {
+        if (!this.started) {
+            return;
+        }
+
         this.started = false;
         this.polling.cancel();
 
         try {
             this.serverSelector.wakeup();
             for (SocketDataController controller : this.controllers.values()) {
-                SelectionKey key = controller.getChannel().keyFor(this.serverSelector);
-                if (key != null) {
-                    key.cancel();
-                }
-                else {
-                    controller.stop();
+                controller.stop();
+
+                SocketChannel ch = controller.getChannel();
+                if (ch != null) {
+                    SelectionKey key = ch.keyFor(this.serverSelector);
+                    if (key != null) {
+                        key.cancel();
+                    }
                 }
                 raiseDisconnected(controller);
             }
             Thread.sleep(1000);
         }
         catch (Exception ex) {
+            ex.printStackTrace();
 
         }
         finally {
             this.controllers.clear();
+            this.clientCallouts.clear();
             try {
                 this.serverSelector.close();
                 this.ch.socket().close();
@@ -420,9 +450,12 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
             catch (Exception ex) {
 
             }
+
+            this.polling = null;
+            this.ch = null;
+            this.serverSelector = null;
+            System.gc();
         }
-        this.ch = null;
-        this.serverSelector = null;
     }
 
     @Override
@@ -642,6 +675,10 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
     }
 
     private void raiseDisconnected(SocketDataController controller) {
+        if (!this.started) {
+            return;
+        }
+
         for (SocketServerListener listener : this.listeners) {
             listener.disconnected(controller);
         }
