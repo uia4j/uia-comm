@@ -73,10 +73,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
      * @param manager Protocol manager.
      * @param aliasName Alias name.
      */
-    public SocketClient(
-            final Protocol<SocketDataController> protocol,
-            final MessageManager manager,
-            String aliasName) {
+    public SocketClient(final Protocol<SocketDataController> protocol, final MessageManager manager, String aliasName) {
         this(protocol, manager, aliasName, -1);
     }
 
@@ -88,11 +85,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
      * @param aliasName Alias name.
      * @param clientPort Client port.
      */
-    public SocketClient(
-            final Protocol<SocketDataController> protocol,
-            final MessageManager manager,
-            String aliasName,
-            int clientPort) {
+    public SocketClient(final Protocol<SocketDataController> protocol, final MessageManager manager, String aliasName, int clientPort) {
         this.clientPort = clientPort;
         this.aliasName = aliasName;
         this.protocol = protocol;
@@ -157,6 +150,14 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
         return tryConnect();
     }
 
+    public void lastUpdate() {
+        this.controller.lastUpdate();
+    }
+
+    public boolean isIdle(int timeout) {
+        return this.controller.isIdle(timeout);
+    }
+
     /**
      * Try connect to remote.
      * @return Connected or not.
@@ -173,6 +174,14 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
         try {
             this.ch = SocketChannel.open();
+            if (this.ch == null || this.ch.socket() == null) {
+                logger.info(String.format("%s> channel to %s:%s can't be opened",
+                        this.aliasName,
+                        this.addr,
+                        this.port));
+                return false;
+            }
+
             if (this.clientPort > 0) {              // with specific port
                 this.ch.socket().bind(new InetSocketAddress(this.clientPort));
             }
@@ -229,6 +238,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
                         ex.getMessage()));
 
             }
+            logger.error(ex);
             disconnect();
             return false;
         }
@@ -251,7 +261,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     @Override
     public synchronized void disconnect() {
-        if (!this.started || this.controller == null) {
+        if (!this.started || this.controller == null || this.ch == null) {
             return;
         }
 
@@ -283,9 +293,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
         }
 
         try {
-            boolean result = this.controller.send(data, times);
-            logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(data, 100)));
-            return result;
+            return this.controller.send(data, times);
         }
         catch (Exception ex) {
             logger.error(String.format("%s> send %s failure. ex:%s",
@@ -311,7 +319,6 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             }
 
             if (this.controller.send(data, 1)) {
-                logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(data, 100)));
                 try {
                     Future<byte[]> future = threadPool.submit(callout);
                     return future.get();
@@ -346,7 +353,6 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
         }
 
         if (this.controller.send(data, 1)) {
-            logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(data, 100)));
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
 

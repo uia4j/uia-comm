@@ -20,6 +20,7 @@ import java.util.Iterator;
 import org.apache.log4j.Logger;
 
 import uia.comm.protocol.ProtocolMonitor;
+import uia.utils.ByteUtils;
 
 /**
  *
@@ -81,10 +82,11 @@ public class SocketDataController implements DataController {
                 this.ch.socket().setSendBufferSize(encoded.length);
                 int cnt = this.ch.write(ByteBuffer.wrap(encoded));
                 if (cnt == encoded.length) {
+                    logger.debug(String.format("%s> send %s", this.name, ByteUtils.toHexString(encoded, 100)));
                     return true;
                 }
                 else {
-                    logger.fatal("write count error!!");
+                    logger.fatal(String.format("%s> write count error!!", this.name));
                 }
             }
             catch (Exception ex) {
