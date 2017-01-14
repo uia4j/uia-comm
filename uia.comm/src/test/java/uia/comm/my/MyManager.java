@@ -42,4 +42,8 @@ public class MyManager implements MessageManager {
         return data;
     }
 
+    @Override
+    public boolean validate(byte[] data) {
+        return true;
+    }
 }

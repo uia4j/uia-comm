@@ -41,9 +41,7 @@ import uia.utils.ByteUtils;
 public class SocketServer implements ProtocolEventHandler<SocketDataController> {
 
     public enum ConnectionStyle {
-        NORMAL,
-        ONE_EACH_CLIENT,
-        ONLYONE
+        NORMAL, ONE_EACH_CLIENT, ONLYONE
     }
 
     private final static Logger logger = Logger.getLogger(SocketServer.class);
@@ -80,11 +78,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
     }
 
-    public SocketServer(
-            Protocol<SocketDataController> protocol,
-            int port,
-            MessageManager manager,
-            String aliasName) throws Exception {
+    public SocketServer(Protocol<SocketDataController> protocol, int port, MessageManager manager, String aliasName) throws Exception {
         this(protocol, port, manager, aliasName, ConnectionStyle.NORMAL);
     }
 
@@ -97,12 +91,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
      * @param aliasName Alias name.
      * @throws Exception Raise construct failure.
      */
-    public SocketServer(
-            Protocol<SocketDataController> protocol,
-            int port,
-            MessageManager manager,
-            String aliasName,
-            ConnectionStyle connectionStyle) throws Exception {
+    public SocketServer(Protocol<SocketDataController> protocol, int port, MessageManager manager, String aliasName, ConnectionStyle connectionStyle) throws Exception {
         this.aliasName = aliasName;
         this.protocol = protocol;
         this.protocol.addMessageHandler(this);
@@ -354,6 +343,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
             this.ch.register(this.serverSelector, SelectionKey.OP_ACCEPT);
         }
         catch (Exception ex) {
+            logger.error(ex);
             return false;
         }
 
@@ -465,6 +455,10 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
         }
 
         final byte[] received = this.manager.decode(args.getData());
+        if (!this.manager.validate(received)) {
+            logger.debug(String.format("%s> data wrong: %s", this.aliasName, ByteUtils.toHexString(received, "-")));
+            return;
+        }
 
         // get command
         String cmd = this.manager.findCmd(received);

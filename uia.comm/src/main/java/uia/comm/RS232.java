@@ -1,11 +1,5 @@
 package uia.comm;
 
-import gnu.io.CommPort;
-import gnu.io.CommPortIdentifier;
-import gnu.io.SerialPort;
-import gnu.io.SerialPortEvent;
-import gnu.io.SerialPortEventListener;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,6 +18,12 @@ import uia.comm.protocol.ProtocolEventArgs;
 import uia.comm.protocol.ProtocolEventHandler;
 import uia.comm.protocol.ProtocolMonitor;
 import uia.utils.ByteUtils;
+
+import gnu.io.CommPort;
+import gnu.io.CommPortIdentifier;
+import gnu.io.SerialPort;
+import gnu.io.SerialPortEvent;
+import gnu.io.SerialPortEventListener;
 
 /**
  *
@@ -62,10 +62,7 @@ public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {
 
     private int parity;
 
-    public RS232(
-            final Protocol<RS232> protocol,
-            final MessageManager manager,
-            String aliasName) {
+    public RS232(final Protocol<RS232> protocol, final MessageManager manager, String aliasName) {
         this.protocol = protocol;
         this.protocol.addMessageHandler(this);
         this.manager = manager;
@@ -192,6 +189,11 @@ public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {
 
     @Override
     public byte[] send(final byte[] data, String txId, long timeout) throws SocketException {
+        return send(data, txId, timeout, 1);
+    }
+
+    @Override
+    public byte[] send(final byte[] data, String txId, long timeout, int retry) throws SocketException {
         if (!this.started) {
             throw new SocketException(this.aliasName + "> is not started.");
         }
@@ -230,6 +232,11 @@ public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {
 
     @Override
     public boolean send(final byte[] data, final MessageCallOut callOut, long timeout) throws SocketException {
+        return send(data, callOut, timeout, 1);
+    }
+
+    @Override
+    public boolean send(final byte[] data, final MessageCallOut callOut, long timeout, int retry) throws SocketException {
         if (!this.started) {
             throw new SocketException(this.aliasName + "> is not started.");
         }
@@ -283,6 +290,10 @@ public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {
         }
 
         final byte[] received = this.manager.decode(args.getData());
+        if (!this.manager.validate(received)) {
+            logger.debug(String.format("%s> data wrong: %s", this.aliasName, ByteUtils.toHexString(received, "-")));
+            return;
+        }
 
         // get command
         String cmd = this.manager.findCmd(received);

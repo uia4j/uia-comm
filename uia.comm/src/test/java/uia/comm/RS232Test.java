@@ -1,8 +1,5 @@
 package uia.comm;
 
-import gnu.io.CommPortIdentifier;
-import gnu.io.SerialPort;
-
 import java.util.Enumeration;
 
 import org.junit.Test;
@@ -10,13 +7,15 @@ import org.junit.Test;
 import uia.comm.protocol.ng.NGProtocol;
 import uia.utils.ByteUtils;
 
+import gnu.io.CommPortIdentifier;
+import gnu.io.SerialPort;
+
 public class RS232Test implements MessageManager {
 
     @Test
     public void testListCOM() {
         Enumeration<?> ports = CommPortIdentifier.getPortIdentifiers();
-        while (ports.hasMoreElements())
-        {
+        while (ports.hasMoreElements()) {
             CommPortIdentifier cpIdentifier = (CommPortIdentifier) ports.nextElement();
             System.out.println(cpIdentifier.getName());
         }
@@ -75,5 +74,10 @@ public class RS232Test implements MessageManager {
     @Override
     public byte[] encode(byte[] data) {
         return data;
+    }
+
+    @Override
+    public boolean validate(byte[] data) {
+        return true;
     }
 }

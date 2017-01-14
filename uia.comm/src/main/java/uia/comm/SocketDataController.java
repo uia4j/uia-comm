@@ -53,11 +53,7 @@ public class SocketDataController implements DataController {
      * @param idlePeriod
      * @throws IOException
      */
-    SocketDataController(
-            String name,
-            SocketChannel ch,
-            MessageManager mgr,
-            ProtocolMonitor<SocketDataController> monitor) throws IOException {
+    SocketDataController(String name, SocketChannel ch, MessageManager mgr, ProtocolMonitor<SocketDataController> monitor) throws IOException {
         this.name = name;
         this.started = false;
         this.ch = ch;

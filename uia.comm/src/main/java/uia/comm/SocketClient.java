@@ -306,6 +306,11 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     @Override
     public byte[] send(final byte[] data, String txId, long timeout) throws SocketException {
+        return send(data, txId, timeout, 1);
+    }
+
+    @Override
+    public byte[] send(final byte[] data, String txId, long timeout, int retry) throws SocketException {
         if (!this.started) {
             throw new SocketException(this.aliasName + "> is not started.");
         }
@@ -318,7 +323,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
                 this.callOuts.put(txId, callout);
             }
 
-            if (this.controller.send(data, 1)) {
+            if (this.controller.send(data, retry)) {
                 try {
                     Future<byte[]> future = threadPool.submit(callout);
                     return future.get();
@@ -343,6 +348,11 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     @Override
     public boolean send(final byte[] data, final MessageCallOut callOut, long timeout) throws SocketException {
+        return send(data, callOut, timeout, 1);
+    }
+
+    @Override
+    public boolean send(final byte[] data, final MessageCallOut callOut, long timeout, int retry) throws SocketException {
         if (!this.started) {
             throw new SocketException(this.aliasName + "> is not started.");
         }
@@ -352,7 +362,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             this.callOuts.put(tx, callOut);
         }
 
-        if (this.controller.send(data, 1)) {
+        if (this.controller.send(data, retry)) {
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
 
@@ -394,6 +404,10 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
         }
 
         final byte[] received = this.manager.decode(args.getData());
+        if (!this.manager.validate(received)) {
+            logger.debug(String.format("%s> data wrong: %s", this.aliasName, ByteUtils.toHexString(received, "-")));
+            return;
+        }
 
         // get command
         String cmd = this.manager.findCmd(received);

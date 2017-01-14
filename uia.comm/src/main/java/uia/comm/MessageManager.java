@@ -4,14 +4,14 @@
  * * Redistribution and use in source and binary forms, with or without
  * * modification, are permitted provided that the following conditions are met:
  * *
- * *     * Redistributions of source code must retain the above copyright
- * *       notice, this list of conditions and the following disclaimer.
- * *     * Redistributions in binary form must reproduce the above copyright
- * *       notice, this list of conditions and the following disclaimer in the
- * *       documentation and/or other materials provided with the distribution.
- * *     * Neither the name of the {company name} nor the
- * *       names of its contributors may be used to endorse or promote products
- * *       derived from this software without specific prior written permission.
+ * * * Redistributions of source code must retain the above copyright
+ * * notice, this list of conditions and the following disclaimer.
+ * * * Redistributions in binary form must reproduce the above copyright
+ * * notice, this list of conditions and the following disclaimer in the
+ * * documentation and/or other materials provided with the distribution.
+ * * * Neither the name of the {company name} nor the
+ * * names of its contributors may be used to endorse or promote products
+ * * derived from this software without specific prior written permission.
  * *
  * * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS "AS IS" AND ANY
  * * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -28,42 +28,49 @@ package uia.comm;
 
 public interface MessageManager {
 
-	/**
-	 * Check if this is a CallIn command.
-	 * 
-	 * @param cmd Command name.
-	 * @return True if it is a CallIn command.
-	 */
-	public boolean isCallIn(String cmd);
+    /**
+     * Check if this is a CallIn command.
+     *
+     * @param cmd Command name.
+     * @return True if it is a CallIn command.
+     */
+    public boolean isCallIn(String cmd);
 
-	/**
-	 * Find name of command from data.
-	 * 
-	 * @param data Data.
-	 * @return Command name.
-	 */
-	public String findCmd(byte[] data);
+    /**
+     * Find name of command from data.
+     *
+     * @param data Data.
+     * @return Command name.
+     */
+    public String findCmd(byte[] data);
 
-	/**
-	 * Find transaction id from data.
-	 * 
-	 * @param data Data.
-	 * @return Transaction id.
-	 */
-	public String findTx(byte[] data);
-	
-	/**
-	 * Decode data to domain format.
-	 * @param data Original data.
-	 * @return Result.
-	 */
-	public byte[] decode(byte[] data);
-	
-	/**
-	 * Encode domain data to byte array.
-	 * @param data Domain data.
-	 * @return Result.
-	 */
-	public byte[] encode(byte[] data);
+    /**
+     * Find transaction id from data.
+     *
+     * @param data Data.
+     * @return Transaction id.
+     */
+    public String findTx(byte[] data);
+
+    /**
+     * Decode data to domain format.
+     * @param data Original data.
+     * @return Result.
+     */
+    public byte[] decode(byte[] data);
+
+    /**
+     * Encode domain data to byte array.
+     * @param data Domain data.
+     * @return Result.
+     */
+    public byte[] encode(byte[] data);
+
+    /**
+     * Validate data if correct or not.
+     * @param data Data need to be validated.
+     * @return result.
+     */
+    public boolean validate(byte[] data);
 
 }

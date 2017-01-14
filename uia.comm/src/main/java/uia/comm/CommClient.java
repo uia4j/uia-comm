@@ -5,7 +5,7 @@ import java.net.SocketException;
 import uia.comm.protocol.Protocol;
 
 /**
- * 
+ *
  * @author Kyle
  *
  * @param <C>
@@ -75,6 +75,18 @@ public interface CommClient<C> {
     public abstract byte[] send(final byte[] data, String txId, long timeout) throws SocketException;
 
     /**
+     * send data to socket server and wait result.
+     *
+     * @param data Data.
+     * @param txId Transaction id.
+     * @param timeout Timeout milliseconds.
+     * @param retry Retry times.
+     * @return Reply data or Null if timeout.
+     * @throws SocketException Raise when server is not connected or send to server failure.
+     */
+    public abstract byte[] send(final byte[] data, String txId, long timeout, int retry) throws SocketException;
+
+    /**
      * Send data to socket server.
      *
      * @param data Data.
@@ -84,4 +96,16 @@ public interface CommClient<C> {
      * @throws SocketException Raise if not started.
      */
     public abstract boolean send(final byte[] data, final MessageCallOut callOut, long timeout) throws SocketException;
+
+    /**
+     * Send data to socket server.
+     *
+     * @param data Data.
+     * @param callOut Reply message worker.
+     * @param timeout Timeout seconds.
+     * @param retry Retry times.
+     * @return Send result.
+     * @throws SocketException Raise if not started.
+     */
+    public abstract boolean send(final byte[] data, final MessageCallOut callOut, long timeout, int retry) throws SocketException;
 }
