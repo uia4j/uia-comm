@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.Test;
 
-import uia.comm.my.MyClientRequest;
+import uia.comm.my.ToServerRequest;
 import uia.comm.my.MyManager;
 import uia.comm.protocol.ht.HTProtocol;
 import uia.comm.protocol.ng.NGProtocol;
@@ -30,13 +30,13 @@ public class NGSocketTest {
 
     private final MyManager manager;
 
-    private final MyClientRequest clientRequest;
+    private final ToServerRequest clientRequest;
 
     public NGSocketTest() throws Exception {
         PropertyConfigurator.configure("log4j.properties");
 
         this.manager = new MyManager();
-        this.clientRequest = new MyClientRequest();
+        this.clientRequest = new ToServerRequest();
 
         this.serverProtocol = new NGProtocol<SocketDataController>();
         this.clientProtocol = new HTProtocol<SocketDataController>(
@@ -125,9 +125,10 @@ public class NGSocketTest {
         group.register(client);
         client.connect("localhost", 5953);
         Thread.sleep(10000);
-        client.send(data, new MyClientRequest(), 3);
+        client.send(data, new ToServerRequest(), 3);
         Thread.sleep(70000);
         System.out.println("done!");
+        
         after();
     }
 }

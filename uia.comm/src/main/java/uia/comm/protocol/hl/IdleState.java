@@ -27,6 +27,11 @@
 package uia.comm.protocol.hl;
 
 public class IdleState<T> implements HLState<T> {
+    
+    @Override
+    public String toString() {
+    	return "IdleState";
+    }
 
 	@Override
 	public void accept(HLProtocolMonitor<T> monitor, byte one) {

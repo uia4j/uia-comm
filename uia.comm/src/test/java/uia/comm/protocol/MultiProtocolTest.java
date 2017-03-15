@@ -28,21 +28,20 @@ package uia.comm.protocol;
 
 import java.util.ArrayList;
 
+import org.junit.Assert;
 import org.junit.Test;
 
-import uia.comm.protocol.hl.HLProtocol;
 import uia.comm.protocol.ho.HOProtocol;
 import uia.comm.protocol.ht.HTProtocol;
-import uia.utils.ByteUtils;
 
-public class MultiProtocolTest implements ProtocolEventHandler<Object> {
+public class MultiProtocolTest extends AbstractProtocolTest {
 
     private final MultiProtocol<Object> protocol;
 
     public MultiProtocolTest() {
         HOProtocol<MultiProtocolMonitor<Object>> p1 = new HOProtocol<MultiProtocolMonitor<Object>>(
                 new byte[] { (byte) 0x41, (byte) 0x42, (byte) 0x43 },
-                5);
+                6);
 
         HTProtocol<MultiProtocolMonitor<Object>> p2 = new HTProtocol<MultiProtocolMonitor<Object>>(
                 new byte[] { (byte) 0x8a, (byte) 0x8a },
@@ -59,101 +58,114 @@ public class MultiProtocolTest implements ProtocolEventHandler<Object> {
     @Test
     public void testNormal() {
         ProtocolMonitor<Object> monitor = this.protocol.createMonitor("abc");
+
+        Assert.assertEquals("IdleState", monitor.getStateInfo());
         monitor.read((byte) 0x41);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x42);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x43);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x44);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
+        monitor.read((byte) 0x44);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x45);
+        Assert.assertEquals("IdleState", monitor.getStateInfo());
 
         monitor.read((byte) 0x8a);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x8a);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x44);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x45);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x46);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0xa8);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0xa8);
+        Assert.assertEquals("IdleState", monitor.getStateInfo());
     }
 
     @Test
     public void testEx1() {
         ProtocolMonitor<Object> monitor = this.protocol.createMonitor("abc");
+        
+        Assert.assertEquals("IdleState", monitor.getStateInfo());
         monitor.read((byte) 0x8a);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x8a);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
 
         monitor.read((byte) 0x41);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x42);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x43);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x44);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
+        monitor.read((byte) 0x44);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x45);
+        Assert.assertEquals("IdleState", monitor.getStateInfo());
 
         monitor.read((byte) 0x46);
+        Assert.assertEquals("IdleState", monitor.getStateInfo());
+        
         monitor.read((byte) 0x8a);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x8a);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x47);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x48);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0xa8);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0xa8);
+        Assert.assertEquals("IdleState", monitor.getStateInfo());
     }
 
     @Test
-    public void testCase1() {
-        // SOH
-        HLProtocol<MultiProtocolMonitor<Object>> soh =
-                new HLProtocol<MultiProtocolMonitor<Object>>(
-                        5,
-                        1,
-                        3,
-                        2,
-                        new LenReader() {
+    public void testEx2() {
+        ProtocolMonitor<Object> monitor = this.protocol.createMonitor("abc");
+        
+        Assert.assertEquals("IdleState", monitor.getStateInfo());
+        monitor.read((byte) 0x41);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
+        monitor.read((byte) 0x42);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
+        monitor.read((byte) 0x43);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
 
-                            @Override
-                            public int read(byte[] data) {
-                                return ByteUtils.shortValue(data);
-                            }
+        monitor.read((byte) 0x44);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
+        monitor.read((byte) 0x8a);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
+        monitor.read((byte) 0x8a);
+        Assert.assertEquals("IdleState", monitor.getStateInfo());
 
-                        },
-                        new byte[] { 0x10, 0x01 });
-        soh.setAliasName("SOH");
-        // ACK
-        HOProtocol<MultiProtocolMonitor<Object>> ack =
-                new HOProtocol<MultiProtocolMonitor<Object>>(
-                        new byte[] { 0x10, 0x06 },
-                        4);
-        ack.setAliasName("ACK");
-        // NAK
-        HOProtocol<MultiProtocolMonitor<Object>> nak =
-                new HOProtocol<MultiProtocolMonitor<Object>>(
-                        new byte[] { 0x10, 0x15 },
-                        5);
-        nak.setAliasName("NAK");
+        monitor.read((byte) 0x8a);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
+        monitor.read((byte) 0x8a);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
 
-        ArrayList<Protocol<MultiProtocolMonitor<Object>>> sub =
-                new ArrayList<Protocol<MultiProtocolMonitor<Object>>>();
-        sub.add(soh);
-        sub.add(ack);
-        sub.add(nak);
-
-        MultiProtocol<Object> protocol = new MultiProtocol<Object>(sub);
-        protocol.addMessageHandler(this);
-
-        ProtocolMonitor<Object> monitor = protocol.createMonitor("THSRC");
-        monitor.read((byte) 0x10);
-        monitor.read((byte) 0x06);
-        monitor.read((byte) 0x0f);
-        monitor.read((byte) 0x19);
-        monitor.read((byte) 0x10);
-        monitor.read((byte) 0x01);
-        monitor.read((byte) 0x10);
-        monitor.read((byte) 0x45);
-    }
-
-    @Override
-    public void messageReceived(ProtocolMonitor<Object> monitor, ProtocolEventArgs args) {
-        System.out.println("r:len=" + args.getData().length + ", " + ByteUtils.toHexString(args.getData()));
-    }
-
-    @Override
-    public void messageError(ProtocolMonitor<Object> monitor, ProtocolEventArgs args) {
-        System.out.println("e:" + args.getErrorCode() + ",len=" + args.getData().length + ", " + ByteUtils.toHexString(args.getData()));
+        monitor.read((byte) 0x46);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
+        monitor.read((byte) 0x8a);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
+        monitor.read((byte) 0x8a);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
+        monitor.read((byte) 0x47);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
+        monitor.read((byte) 0x48);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
+        monitor.read((byte) 0xa8);
+        Assert.assertEquals("RunningState", monitor.getStateInfo());
+        monitor.read((byte) 0xa8);
+        Assert.assertEquals("IdleState", monitor.getStateInfo());
     }
 }

@@ -29,6 +29,11 @@ package uia.comm.protocol.htx;
 import uia.comm.protocol.ProtocolEventArgs;
 
 public class TailState<C> implements HTxState<C> {
+    
+    @Override
+    public String toString() {
+    	return "TailState";
+    }
 
     @Override
     public void accept(HTxProtocolMonitor<C> monitor, byte one) {

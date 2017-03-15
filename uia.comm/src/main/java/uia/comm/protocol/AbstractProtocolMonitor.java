@@ -63,7 +63,7 @@ public abstract class AbstractProtocolMonitor<C> implements ProtocolMonitor<C> {
     @Override
     public void setController(C controller) {
         this.controller = controller;
-    }
+    } 
 
     public byte[] packing() {
         byte[] result = new byte[this.data.size()];

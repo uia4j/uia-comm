@@ -26,8 +26,6 @@ public class MultiProtocolMonitor<T> implements ProtocolMonitor<T> {
 
     private T controller;
 
-    private int failCount;
-
     /**
      * Constructor.
      * 
@@ -38,8 +36,7 @@ public class MultiProtocolMonitor<T> implements ProtocolMonitor<T> {
         this.protocol = protocol;
         this.name = name;
         this.monitors = new ArrayList<ProtocolMonitor<MultiProtocolMonitor<T>>>();
-        for (Protocol<MultiProtocolMonitor<T>> item : protocol.protocols)
-        {
+        for (Protocol<MultiProtocolMonitor<T>> item : protocol.protocols) {
             ProtocolMonitor<MultiProtocolMonitor<T>> monitor = item.createMonitor(name);
             monitor.setController(this);
             this.monitors.add(monitor);
@@ -58,11 +55,10 @@ public class MultiProtocolMonitor<T> implements ProtocolMonitor<T> {
 
     @Override
     public synchronized void read(byte data) {
-        this.failCount = 0;
-        for (ProtocolMonitor<MultiProtocolMonitor<T>> monitor : this.monitors) {
-            this.failCount++;
-            monitor.read(data);
-        }
+    	int size = this.monitors.size();
+    	for(int i = (size - 1); i >= 0; i--) {
+    		this.monitors.get(i).read(data);
+    	}
     }
 
     @Override
@@ -89,19 +85,19 @@ public class MultiProtocolMonitor<T> implements ProtocolMonitor<T> {
         this.controller = controller;
     }
 
+	@Override
+	public String getStateInfo() {
+		return isRunning() ? "RunningState" : "IdleState";
+	}
+
     @Override
     public boolean isRunning() {
-        for (ProtocolMonitor<MultiProtocolMonitor<T>> m : this.monitors)
-        {
+        for (ProtocolMonitor<MultiProtocolMonitor<T>> m : this.monitors) {
             if (m.isRunning()) {
                 return true;
             }
         }
         return false;
-    }
-
-    int readFailCount() {
-        return this.failCount;
     }
 
     /**

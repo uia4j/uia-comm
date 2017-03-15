@@ -21,6 +21,11 @@ public class BodyState<T> implements HLState<T> {
         this.len = -1;
         this.headIdx = 0;
     }
+    
+    @Override
+    public String toString() {
+    	return "BodyState";
+    }
 
     @Override
     public void accept(HLProtocolMonitor<T> monitor, byte one) {

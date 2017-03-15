@@ -36,6 +36,11 @@ public class NGProtocolMonitor<C> extends AbstractProtocolMonitor<C> {
     public void reset() {
         this.data.clear();
     }
+    
+    @Override
+    public String getStateInfo() {
+    	return isRunning() ? "BodyState" : "IdleState";
+    }
 
     @Override
     public boolean isRunning() {

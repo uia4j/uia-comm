@@ -35,6 +35,11 @@ public class BodyState<T> implements HOState<T> {
 	public BodyState() {
 		this.headIdx = 0;
 	}
+    
+    @Override
+    public String toString() {
+    	return "BodyState";
+    }
 
 	@Override
 	public void accept(HOProtocolMonitor<T> monitor, byte one) {

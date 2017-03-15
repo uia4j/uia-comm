@@ -26,11 +26,12 @@
  *******************************************************************************/
 package uia.comm.protocol;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import uia.comm.protocol.ht.HTProtocol;
 
-public class HTProtocolTest implements ProtocolEventHandler<Object> {
+public class HTProtocolTest extends AbstractProtocolTest {
 
 	private final HTProtocol<Object> protocol;
 
@@ -43,57 +44,68 @@ public class HTProtocolTest implements ProtocolEventHandler<Object> {
 
 	@Test
 	public void testNormal() {
-
 		ProtocolMonitor<Object> monitor = this.protocol.createMonitor("abc");
-		monitor.read((byte) 0x8a);
-		monitor.read((byte) 0x8a);
+
+		monitor.read((byte) 0x00);
+		Assert.assertEquals("IdleState", monitor.getStateInfo());
+		monitor.read((byte) 0x00);
+		Assert.assertEquals("IdleState", monitor.getStateInfo());
+		monitor.read((byte) 0x8a);	// head
+		Assert.assertEquals("HeadState", monitor.getStateInfo());
+		monitor.read((byte) 0x00);
+		Assert.assertEquals("IdleState", monitor.getStateInfo());
+
+		monitor.read((byte) 0x8a);	// head	
+		Assert.assertEquals("HeadState", monitor.getStateInfo());
+		monitor.read((byte) 0x8a);	// head
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
 		monitor.read((byte) 0x41);
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
 		monitor.read((byte) 0x43);
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
 		monitor.read((byte) 0x45);
-		monitor.read((byte) 0xa8);
-		monitor.read((byte) 0xa8);
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
+		monitor.read((byte) 0xa8);	// tail
+		Assert.assertEquals("TailState", monitor.getStateInfo());
+		monitor.read((byte) 0xa8);	// tail
+		Assert.assertEquals("IdleState", monitor.getStateInfo());
+		
+		Assert.assertArrayEquals(
+				new byte[] { (byte) 0x8a, (byte) 0x8a, 0x41, 0x43, 0x45, (byte) 0xa8, (byte) 0xa8 }, 
+				this.recvArgs.getData());
 	}
 
 	@Test
 	public void testEx1() {
-
 		ProtocolMonitor<Object> monitor = this.protocol.createMonitor("abc");
+		
+		Assert.assertNull(this.errArgs);
+
+		Assert.assertEquals("IdleState", monitor.getStateInfo());
 		monitor.read((byte) 0x8a);
+		Assert.assertEquals("HeadState", monitor.getStateInfo());
 		monitor.read((byte) 0x8a);
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
 		monitor.read((byte) 0x41);
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
 		monitor.read((byte) 0x43);
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
+		
+		monitor.read((byte) 0x8a);
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
+		monitor.read((byte) 0x8a);
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
+		Assert.assertNotNull(this.errArgs);
 
-		monitor.read((byte) 0x8a);
-		monitor.read((byte) 0x8a);
 		monitor.read((byte) 0x45);
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
 		monitor.read((byte) 0xa8);
+		Assert.assertEquals("TailState", monitor.getStateInfo());
 		monitor.read((byte) 0xa8);
-	}
+		Assert.assertEquals("IdleState", monitor.getStateInfo());
 
-	@Test
-	public void testEx2() {
-
-		ProtocolMonitor<Object> monitor = this.protocol.createMonitor("abc");
-		monitor.read((byte) 0x8a);
-		monitor.read((byte) 0x8a);
-		monitor.read((byte) 0x41);
-		monitor.read((byte) 0xa8);
-
-		monitor.read((byte) 0x8a);
-		monitor.read((byte) 0x8a);
-		monitor.read((byte) 0x43);
-		monitor.read((byte) 0x45);
-		monitor.read((byte) 0xa8);
-		monitor.read((byte) 0xa8);
-	}
-
-	@Override
-	public void messageReceived(ProtocolMonitor<Object> monitor, ProtocolEventArgs args) {
-		System.out.println("r:" + new String(args.getData()));
-	}
-
-	@Override
-	public void messageError(ProtocolMonitor<Object> monitor, ProtocolEventArgs args) {
-		System.out.println("e:" + new String(args.getData()));
+		Assert.assertArrayEquals(
+				new byte[] { (byte) 0x8a, (byte) 0x8a, 0x45, (byte) 0xa8, (byte) 0xa8 }, 
+				this.recvArgs.getData());
 	}
 }

@@ -10,14 +10,15 @@
 package uia.comm.my;
 
 import org.apache.log4j.Logger;
+import org.junit.Assert;
 
 import uia.comm.MessageCallIn;
 import uia.comm.MessageCallOut;
 import uia.comm.SocketDataController;
 
-public class MyClientRequest implements MessageCallOut, MessageCallIn<SocketDataController> {
+public class ToServerRequest implements MessageCallOut, MessageCallIn<SocketDataController> {
 
-    public static Logger logger = Logger.getLogger(MyClientRequest.class);
+    public static Logger logger = Logger.getLogger(ToServerRequest.class);
 
     @Override
     public String getCmdName() {
@@ -31,7 +32,10 @@ public class MyClientRequest implements MessageCallOut, MessageCallIn<SocketData
 
     @Override
     public void execute(byte[] reply) {
-        logger.info("client gets reply: " + reply.length);
+    	Assert.assertArrayEquals(
+    			new byte[] { (byte) 0x8a, 0x44, 0x45, 0x46, 0x32, 0x31, (byte) 0xa8 },
+    			reply);
+    	System.out.println("toServer pass");
     }
 
     @Override
@@ -41,12 +45,6 @@ public class MyClientRequest implements MessageCallOut, MessageCallIn<SocketData
 
     @Override
     public void execute(byte[] request, SocketDataController controller) {
-        try {
-            logger.info(controller.getName() + "> callin> data len: " + request.length);
-            System.out.println("client executes:" + controller.send(new byte[] { (byte) 0x8a, 0x44, 0x45, 0x46, 0x32, 0x31, (byte) 0xa8 }, 1));
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        controller.send(new byte[] { (byte) 0x8a, 0x44, 0x45, 0x46, 0x32, 0x31, (byte) 0xa8 }, 1);
     }
 }

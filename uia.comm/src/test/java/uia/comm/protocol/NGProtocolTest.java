@@ -26,12 +26,12 @@
  *******************************************************************************/
 package uia.comm.protocol;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import uia.comm.protocol.ng.NGProtocol;
-import uia.utils.ByteUtils;
 
-public class NGProtocolTest implements ProtocolEventHandler<Object> {
+public class NGProtocolTest extends AbstractProtocolTest {
 
 	private final NGProtocol<Object> protocol;
 
@@ -41,21 +41,16 @@ public class NGProtocolTest implements ProtocolEventHandler<Object> {
 	}
 
 	@Test
-	public void testNormal1() {
+	public void testNormal() {
 		ProtocolMonitor<Object> monitor = this.protocol.createMonitor("abc");
+		Assert.assertEquals("IdleState", monitor.getStateInfo());
 		monitor.read((byte) 0x43);
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
 		monitor.read((byte) 0x44);
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
 		monitor.read((byte) 0x45);
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
 		monitor.readEnd();
-	}
-
-	@Override
-	public void messageReceived(ProtocolMonitor<Object> monitor, ProtocolEventArgs args) {
-		System.out.println("r:len=" + args.getData().length + ", " + ByteUtils.toHexString(args.getData()));
-	}
-
-	@Override
-	public void messageError(ProtocolMonitor<Object> monitor, ProtocolEventArgs args) {
-		System.out.println("e:" + args.getErrorCode() + ",len=" + args.getData().length + ", " + ByteUtils.toHexString(args.getData()));
+		Assert.assertEquals("IdleState", monitor.getStateInfo());
 	}
 }

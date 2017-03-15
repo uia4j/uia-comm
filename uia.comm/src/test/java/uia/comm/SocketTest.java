@@ -28,18 +28,23 @@ package uia.comm;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import uia.comm.my.MyClientRequest;
+import uia.comm.my.ToServerRequest;
 import uia.comm.my.MyManager;
-import uia.comm.my.MyServerRequest;
+import uia.comm.my.ToClientRequest;
 import uia.comm.protocol.ht.HTProtocol;
 
 public class SocketTest {
 
 	public static Logger logger = Logger.getLogger(SocketTest.class);
 
+	private final int port = 1234;
+	
 	private final HTProtocol<SocketDataController> serverProtocol;
 
 	private final HTProtocol<SocketDataController> clientProtocol;
@@ -48,9 +53,9 @@ public class SocketTest {
 
 	private final MyManager manager;
 
-	private final MyServerRequest serverRequest;
+	private final ToClientRequest toClientReq;
 
-	private final MyClientRequest clientRequest;
+	private final ToServerRequest toServerReq;
 
 	private String clientId;
 
@@ -58,8 +63,8 @@ public class SocketTest {
 		PropertyConfigurator.configure("log4j.properties");
 
 		this.manager = new MyManager();
-		this.serverRequest = new MyServerRequest();
-		this.clientRequest = new MyClientRequest();
+		this.toClientReq = new ToClientRequest();
+		this.toServerReq = new ToServerRequest();
 
 		this.serverProtocol = new HTProtocol<SocketDataController>(
 		        new byte[] { (byte) 0x8a },
@@ -69,8 +74,8 @@ public class SocketTest {
 		        new byte[] { (byte) 0x8a },
 		        new byte[] { (byte) 0xa8 });
 
-		this.server = new SocketServer(this.serverProtocol, 5953, this.manager, "s");
-		this.server.registerCallin(this.clientRequest);
+		this.server = new SocketServer(this.serverProtocol, this.port, this.manager, "svr");
+		this.server.registerCallin(this.toServerReq);
 		this.server.addServerListener(new SocketServerListener() {
 
 			@Override
@@ -86,73 +91,64 @@ public class SocketTest {
 		});
 	}
 
+	@Before
 	public void before() throws Exception {
 		this.server.start();
 		Thread.sleep(1000);
 	}
 
+	@After
 	public void after() throws Exception {
 		this.server.stop();
 	}
 
 	@Test
-	@Ignore
 	public void testPolling() throws Exception {
-
 		SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c2");
-		client.connect("localhost", 5953);
+		client.connect("localhost", this.port);
 		Thread.sleep(10000);
 		client.disconnect();
-		Thread.sleep(10000);
+		Thread.sleep(1000);
 	}
 
 	@Test
-	@Ignore
 	public void testSend() throws Exception {
+		SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c2", 1235);
+		client.connect("localhost", this.port);
 
-		SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c2", 1234);
-		client.connect("localhost", 5953);
-		Thread.sleep(5000);
-
-		this.server.disconnect("/127.0.0.1:1234");
-		Thread.sleep(10000);
-		System.out.println(client.send(new byte[] { 0x01, 0x02, 0x03 }));
-		System.out.println(client.send(new byte[] { 0x01, 0x02, 0x03 }));
+		Thread.sleep(1000);
+		Assert.assertTrue(client.send(new byte[] { 0x01, 0x02, 0x03 }));
+		Thread.sleep(1000);
+		Assert.assertTrue(client.send(new byte[] { 0x01, 0x02, 0x03 }));
 		client.disconnect();
+
+		this.server.disconnect("/127.0.0.1:1235");
 	}
 
 	@Test
-	@Ignore
-	public void testClientPort() throws Exception {
-
-		SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c2", 1234);
-		client.connect("localhost", 5953);
-		Thread.sleep(5000);
-		client.disconnect();
-	}
-
-	@Test
-	@Ignore
-	public void testInOut() throws Exception {
+	public void testRequest() throws Exception {
 		SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c1");
-		client.registerCallin(this.serverRequest);
-		client.connect("localhost", 5953);
+		client.registerCallin(this.toClientReq);
+		client.connect("localhost", this.port);
 
-		client.send(
+		// client 2 server
+		boolean s1 = client.send(
 		        new byte[] { (byte) 0x8a, 0x41, 0x42, 0x43, 0x32, (byte) 0xa8 },
-		        this.clientRequest,
+		        this.toServerReq,
 		        1000);
-		Thread.sleep(2000);
+		Assert.assertTrue(s1);
 
-		this.server.send(
+		// server 2 client
+		boolean s2 = this.server.send(
 		        this.clientId,
 		        new byte[] { (byte) 0x8a, 0x41, 0x42, 0x43, 0x31, (byte) 0xa8 },
-		        this.serverRequest,
+		        this.toClientReq,
 		        1000);
-		Thread.sleep(2000);
+
+		Assert.assertTrue(s2);
 
 		// close
+		Thread.sleep(2000);
 		client.disconnect();
-		Thread.sleep(5000);
 	}
 }

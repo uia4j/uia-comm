@@ -66,4 +66,10 @@ public interface ProtocolMonitor<C> {
      * @return Running or not.
      */
     public boolean isRunning();
+    
+    /**
+     * Get state.
+     * @return State.
+     */
+    public String getStateInfo();
 }

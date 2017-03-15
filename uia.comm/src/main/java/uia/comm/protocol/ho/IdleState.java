@@ -27,6 +27,11 @@
 package uia.comm.protocol.ho;
 
 public class IdleState<T> implements HOState<T> {
+    
+    @Override
+    public String toString() {
+    	return "IdleState";
+    }
 
 	@Override
 	public void accept(HOProtocolMonitor<T> monitor, byte one) {

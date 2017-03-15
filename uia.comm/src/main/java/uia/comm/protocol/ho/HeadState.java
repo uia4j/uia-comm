@@ -29,6 +29,11 @@ package uia.comm.protocol.ho;
 import uia.comm.protocol.ProtocolEventArgs;
 
 public class HeadState<T> implements HOState<T> {
+    
+    @Override
+    public String toString() {
+    	return "HeadState";
+    }
 
 	@Override
 	public void accept(HOProtocolMonitor<T> monitor, byte one) {

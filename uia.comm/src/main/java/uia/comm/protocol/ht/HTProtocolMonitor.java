@@ -11,6 +11,7 @@ package uia.comm.protocol.ht;
 
 import uia.comm.protocol.AbstractProtocolMonitor;
 import uia.comm.protocol.ProtocolEventArgs;
+import uia.comm.protocol.hl.HLState;
 
 public class HTProtocolMonitor<C> extends AbstractProtocolMonitor<C> {
 
@@ -45,8 +46,18 @@ public class HTProtocolMonitor<C> extends AbstractProtocolMonitor<C> {
     public boolean isRunning() {
         return !(this.state instanceof IdleState);
     }
+    
+    @Override
+    public String getStateInfo() {
+    	return getState().toString();
+    }
 
-    void setState(HTState<C> state) {
+    public HTState<C> getState()
+    {
+        return this.state;
+    }
+
+    public void setState(HTState<C> state) {
         this.state = state;
     }
 

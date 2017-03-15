@@ -35,6 +35,11 @@ public class BodyState<C> implements HTState<C> {
     public BodyState() {
         this.headIdx = 0;
     }
+    
+    @Override
+    public String toString() {
+    	return "BodyState";
+    }
 
     @Override
     public void accept(HTProtocolMonitor<C> monitor, byte one) {

@@ -26,125 +26,85 @@
  *******************************************************************************/
 package uia.comm.protocol;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import uia.comm.protocol.ho.HOProtocol;
-import uia.utils.ByteUtils;
 
-public class HOProtocolTest implements ProtocolEventHandler<Object> {
-
-    public HOProtocolTest() {
-    }
+public class HOProtocolTest extends AbstractProtocolTest {
 
     @Test
     public void testNormal1() {
-        HOProtocol<Object> protocol = new HOProtocol<Object>(new byte[] { (byte) 0xee, 0x06, 0x49 }, 25);
+    	HOProtocol<Object> protocol = new HOProtocol<Object>(new byte[] { (byte) 0xee, 0x06, 0x49 }, 25);
         protocol.addMessageHandler(this);
 
         ProtocolMonitor<Object> monitor = protocol.createMonitor("abc");
+
+        monitor.read((byte) 0x00);
+		Assert.assertEquals("IdleState", monitor.getStateInfo());
         monitor.read((byte) 0xee);
+		Assert.assertEquals("HeadState", monitor.getStateInfo());
+        monitor.read((byte) 0x00);
+		Assert.assertEquals("IdleState", monitor.getStateInfo());
+
+		monitor.read((byte) 0xee);
+        Assert.assertEquals("HeadState", monitor.getStateInfo());
         monitor.read((byte) 0x06);
+        Assert.assertEquals("HeadState", monitor.getStateInfo());
         monitor.read((byte) 0x49);
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
         monitor.read((byte) 0x44);
-        monitor.readEnd();
-        monitor.read((byte) 0x45);
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
+        monitor.readEnd();	// simulate idle
+		Assert.assertEquals("BodyState", monitor.getStateInfo());
 
-        monitor.read((byte) 0x46);
+		for(int i=0; i<20; i++) {
+	        monitor.read((byte) 0x45);
+			Assert.assertEquals("BodyState", monitor.getStateInfo());
+		}
+		
         monitor.read((byte) 0x47);
+		Assert.assertEquals("IdleState", monitor.getStateInfo());
+        Assert.assertEquals(25, this.recvArgs.getData().length);
 
-        monitor.read((byte) 0x41);
-        monitor.read((byte) 0x42);
-        monitor.read((byte) 0x43);
-        for (int i = 0; i < 25; i++) {
-            monitor.read((byte) i);
-        }
+        monitor.read((byte) 0x47);
+		Assert.assertEquals("IdleState", monitor.getStateInfo());
+        monitor.read((byte) 0x47);
+		Assert.assertEquals("IdleState", monitor.getStateInfo());
     }
 
     @Test
     public void testNormal2() {
         HOProtocol<Object> protocol = new HOProtocol<Object>(
                 new byte[] { (byte) 0x41, (byte) 0x42, (byte) 0x43 },
-                3);
-        protocol.addMessageHandler(this);
-
-        ProtocolMonitor<Object> monitor = protocol.createMonitor("abc");
-        monitor.read((byte) 0x41);
-        monitor.read((byte) 0x42);
-        monitor.read((byte) 0x43);
-        monitor.read((byte) 0x44);
-        monitor.read((byte) 0x45);
-    }
-
-    @Test
-    public void testNormal3() {
-        HOProtocol<Object> protocol = new HOProtocol<Object>(
-                new byte[] { (byte) 0x41, (byte) 0x42, (byte) 0x43 },
                 0);
         protocol.addMessageHandler(this);
 
         ProtocolMonitor<Object> monitor = protocol.createMonitor("abc");
+
+        monitor.read((byte) 0x00);
+		Assert.assertEquals("IdleState", monitor.getStateInfo());
         monitor.read((byte) 0x41);
+        Assert.assertEquals("HeadState", monitor.getStateInfo());
         monitor.read((byte) 0x42);
+        Assert.assertEquals("HeadState", monitor.getStateInfo());
+
+        monitor.read((byte) 0x41);
+        Assert.assertEquals("HeadState", monitor.getStateInfo());
+        monitor.read((byte) 0x42);
+        Assert.assertEquals("HeadState", monitor.getStateInfo());
         monitor.read((byte) 0x43);
-        monitor.read((byte) 0x44);
+        Assert.assertEquals("BodyState", monitor.getStateInfo());
+        monitor.read((byte) 0x43);
+        Assert.assertEquals("BodyState", monitor.getStateInfo());
+        monitor.read((byte) 0x43);
+        Assert.assertEquals("BodyState", monitor.getStateInfo());
+        monitor.read((byte) 0x43);
         monitor.readEnd();
-        monitor.read((byte) 0x45);
-        monitor.read((byte) 0x46);
-        monitor.read((byte) 0x47);
-        monitor.read((byte) 0x41);
-        monitor.read((byte) 0x42);
+        Assert.assertEquals("IdleState", monitor.getStateInfo());
+        Assert.assertEquals(6, this.recvArgs.getData().length);
+
         monitor.read((byte) 0x43);
-        monitor.readEnd();
-    }
-
-    @Test
-    public void testEx1() {
-        HOProtocol<Object> protocol = new HOProtocol<Object>(
-                new byte[] { (byte) 0x41, (byte) 0x42, (byte) 0x43 },
-                5);
-        protocol.addMessageHandler(this);
-
-        ProtocolMonitor<Object> monitor = protocol.createMonitor("abc");
-        monitor.read((byte) 0x41);
-        monitor.read((byte) 0x42);
-
-        monitor.read((byte) 0x41);
-        monitor.read((byte) 0x42);
-        monitor.read((byte) 0x43);
-        monitor.read((byte) 0x44);
-        monitor.read((byte) 0x45);
-    }
-
-    @Test
-    public void testEx2() {
-        HOProtocol<Object> protocol = new HOProtocol<Object>(
-                new byte[] { (byte) 0x41, (byte) 0x42, (byte) 0x43 },
-                8);
-        protocol.addMessageHandler(this);
-
-        ProtocolMonitor<Object> monitor = protocol.createMonitor("abc");
-        monitor.read((byte) 0x41);
-        monitor.read((byte) 0x42);
-        monitor.read((byte) 0x43);
-        monitor.read((byte) 0x44);
-        monitor.read((byte) 0x41);
-        monitor.read((byte) 0x42);
-        monitor.read((byte) 0x43);
-        monitor.read((byte) 0x44);
-
-        monitor.read((byte) 0x45);
-        monitor.read((byte) 0x46);
-        monitor.read((byte) 0x47);
-        monitor.read((byte) 0x48);
-    }
-
-    @Override
-    public void messageReceived(ProtocolMonitor<Object> monitor, ProtocolEventArgs args) {
-        System.out.println("r:len=" + args.getData().length + ", " + ByteUtils.toHexString(args.getData()));
-    }
-
-    @Override
-    public void messageError(ProtocolMonitor<Object> monitor, ProtocolEventArgs args) {
-        System.out.println("e:" + args.getErrorCode() + ",len=" + args.getData().length + ", " + ByteUtils.toHexString(args.getData()));
+        Assert.assertEquals("IdleState", monitor.getStateInfo());
     }
 }

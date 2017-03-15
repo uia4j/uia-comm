@@ -27,6 +27,11 @@
 package uia.comm.protocol.htx;
 
 public class IdleState<C> implements HTxState<C> {
+    
+    @Override
+    public String toString() {
+    	return "IdleState";
+    }
 
     @Override
     public void accept(HTxProtocolMonitor<C> monitor, byte one) {

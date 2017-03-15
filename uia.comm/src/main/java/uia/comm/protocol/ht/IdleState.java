@@ -27,6 +27,11 @@
 package uia.comm.protocol.ht;
 
 public class IdleState<C> implements HTState<C> {
+    
+    @Override
+    public String toString() {
+    	return "IdleState";
+    }
 
 	@Override
 	public void accept(HTProtocolMonitor<C> monitor, byte one) {

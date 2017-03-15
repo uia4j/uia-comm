@@ -29,8 +29,13 @@ package uia.comm.protocol.hl;
 import uia.comm.protocol.ProtocolEventArgs;
 
 public class HeadState<T> implements HLState<T> {
+    
+    @Override
+    public String toString() {
+    	return "HeadState";
+    }
 
-	@Override
+    @Override
 	public void accept(HLProtocolMonitor<T> monitor, byte one) {
 		monitor.addOne(one);
 		if (monitor.headIdx < monitor.protocol.head.length && one == monitor.protocol.head[monitor.headIdx]) {

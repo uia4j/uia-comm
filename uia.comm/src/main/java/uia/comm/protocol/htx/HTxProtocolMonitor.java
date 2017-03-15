@@ -42,8 +42,17 @@ public class HTxProtocolMonitor<C> extends AbstractProtocolMonitor<C> {
     public boolean isRunning() {
         return !(this.state instanceof IdleState);
     }
+    
+    @Override
+    public String getStateInfo(){
+    	return this.state.toString();
+    }
+    
+    public HTxState<C> getState(){
+    	return this.state;
+    }
 
-    void setState(HTxState<C> state) {
+    public void setState(HTxState<C> state) {
         this.state = state;
     }
 

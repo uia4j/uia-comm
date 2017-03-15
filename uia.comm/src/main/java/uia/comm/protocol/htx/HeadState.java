@@ -27,6 +27,11 @@
 package uia.comm.protocol.htx;
 
 public class HeadState<C> implements HTxState<C> {
+    
+    @Override
+    public String toString() {
+    	return "HeadState";
+    }
 
     @Override
     public void accept(HTxProtocolMonitor<C> monitor, byte one) {

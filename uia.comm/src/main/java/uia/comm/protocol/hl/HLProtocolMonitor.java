@@ -26,6 +26,11 @@ public class HLProtocolMonitor<T> extends AbstractProtocolMonitor<T> {
         this.protocol = protocol;
         this.state = new IdleState<T>();
     }
+    
+    @Override
+    public String getStateInfo() {
+    	return getState().toString();
+    }
 
     public HLState<T> getState()
     {

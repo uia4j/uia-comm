@@ -27,6 +27,11 @@
 package uia.comm.protocol.ht;
 
 public class HeadState<C> implements HTState<C> {
+    
+    @Override
+    public String toString() {
+    	return "HeadState";
+    }
 
 	@Override
 	public void accept(HTProtocolMonitor<C> monitor, byte one) {
