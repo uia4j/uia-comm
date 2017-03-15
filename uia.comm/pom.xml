@@ -99,7 +99,7 @@
 	<distributionManagement>
 	    <repository>
 	        <id>bintray-my-maven</id>
-	        <url>https://api.bintray.com/maven/gazer2kanlin/maven/uia.message4jj/;publish=1</url>
+	        <url>https://api.bintray.com/maven/gazer2kanlin/maven/uia.comm4j/;publish=1</url>
 	    </repository>
 	</distributionManagement>
 </project>
