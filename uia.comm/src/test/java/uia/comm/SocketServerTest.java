@@ -18,7 +18,6 @@
  *******************************************************************************/
 package uia.comm;
 
-import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,8 +27,6 @@ import uia.comm.my.MyManager;
 import uia.comm.protocol.ng.NGProtocol;
 
 public class SocketServerTest {
-
-    public static Logger logger = Logger.getLogger(SocketServerTest.class);
 
     private final NGProtocol<SocketDataController> serverProtocol;
 
@@ -50,14 +47,14 @@ public class SocketServerTest {
     public void testOnlyOne() throws Exception {
         SocketServer server = create("OnlyOne", 2234, ConnectionStyle.ONLYONE);
         server.start();
+
         for (int i = 0; i < 5; i++) {
-            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c" + i);
+            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "oo-" + i);
             Assert.assertTrue(client.connect("localhost", 2234));
             Thread.sleep(500);
             Assert.assertEquals(1, server.getClientCount());
         }
 
-        Thread.sleep(500);
         server.stop();
     }
 
@@ -65,14 +62,14 @@ public class SocketServerTest {
     public void testOneEachClient() throws Exception {
         SocketServer server = create("OneEachClient", 2235, ConnectionStyle.ONE_EACH_CLIENT);
         server.start();
+
         for (int i = 0; i < 5; i++) {
-            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c" + i);
+            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "oec-" + i);
             Assert.assertTrue(client.connect("localhost", 2235));
             Thread.sleep(500);
             Assert.assertEquals(1, server.getClientCount());
         }
 
-        Thread.sleep(500);
         server.stop();
     }
 
@@ -80,13 +77,14 @@ public class SocketServerTest {
     public void testNormalType() throws Exception {
         SocketServer server = create("Normal", 2236, ConnectionStyle.NORMAL);
         server.start();
+
         for (int i = 0; i < 5; i++) {
-            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c" + i);
+            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "n-" + i);
             Assert.assertTrue(client.connect("localhost", 2236));
+            Thread.sleep(500);
             Assert.assertEquals(i + 1, server.getClientCount());
         }
 
-        Thread.sleep(500);
         server.stop();
     }
 
@@ -95,11 +93,14 @@ public class SocketServerTest {
         SocketServer server = create("Idle", 2238, ConnectionStyle.NORMAL);
         server.setIdleTime(1500);
         server.start();
-        SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c1");
+
+        SocketClient client = new SocketClient(this.clientProtocol, this.manager, "clnt");
         Assert.assertTrue(client.connect("localhost", 2238));
+        Thread.sleep(500);
         Assert.assertEquals(1, server.getClientCount());
         Thread.sleep(3500);
         Assert.assertEquals(0, server.getClientCount());
+
         server.stop();
     }
 
