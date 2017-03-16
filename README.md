@@ -1,18 +1,23 @@
-UIA comm
+UIA Comm
 ================
 
-[![Build Status](https://travis-ci.org/gazer2kanlin/uia.comm4j.svg?branch=0.4.0.0)](https://travis-ci.org/gazer2kanlin/uia.comm4j)
+[![Build Status](https://travis-ci.org/gazer2kanlin/uia.comm4j.svg?branch=0.2.0.0)](https://travis-ci.org/gazer2kanlin/uia.comm4j)
 [![Codecov](https://img.shields.io/codecov/c/github/gazer2kanlin/uia.comm4j.svg)](https://codecov.io/gh/gazer2kanlin/uia.comm4j)
 [![License](https://img.shields.io/github/license/gazer2kanlin/uia.comm4j.svg)](LICENSE)
 
 Socket client, server & RS232 library.
 
-## Feature
 
-* Protocol interface
+## Key Abstraction
 
-* Command I/O control
+### Protocol
+Provide protocol interface to define structure abstraction.
 
+### Message Manager
+Provide message manager to verify and validate I/O message.
+
+### Call In/Out
+Define interface to handle I/O message.
 
 
 ## Copyright and License
