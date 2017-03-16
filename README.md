@@ -19,6 +19,52 @@ Provide message manager to verify and validate I/O message.
 ### Call In/Out
 Define interface to handle I/O message.
 
+## Maven
+Because uia.comm uses [uia.utils](https://github.com/gazer2kanlin/uia.utils4j) deployed on jcenter, configure local Maven __settings.xml__ first.
+
+settings.xml in .m2 directory:
+```
+<profiles>
+    <profile>
+        <repositories>
+            <repository>
+                <snapshots>
+                    <enabled>false</enabled>
+                </snapshots>
+                <id>central</id>
+                <name>bintray</name>
+                <url>http://jcenter.bintray.com</url>
+            </repository>
+        </repositories>
+        <pluginRepositories>
+            <pluginRepository>
+                <snapshots>
+                    <enabled>false</enabled>
+                </snapshots>
+                <id>central</id>
+                <name>bintray-plugins</name>
+                <url>http://jcenter.bintray.com</url>
+            </pluginRepository>
+        </pluginRepositories>
+        <id>bintray</id>
+    </profile>
+</profiles>
+<activeProfiles>
+    <activeProfile>bintray</activeProfile>
+</activeProfiles>
+```
+pom.xml in your project:
+```
+<dependency>
+    <groupId>uia</groupId>
+    <artifactId>uia.comm</artifactId>
+    <version>0.2.0</version>
+</dependency>
+```
+
+## Dependency Libraries
+
+* [uia.utils](https://github.com/gazer2kanlin/uia.utils4j) - UIA common utilities
 
 ## Copyright and License
 
