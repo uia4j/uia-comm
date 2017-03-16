@@ -4,8 +4,7 @@ language: java
 sudo: false
 
 script:
-  - mvn test -f ./uia.comm/pom.xml --settings .travis.settings.xml
-  - mvn cobertura:cobertura -f ./uia.comm/pom.xml
+  - mvn cobertura:cobertura -f ./uia.comm/pom.xml --settings .travis.settings.xml
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
