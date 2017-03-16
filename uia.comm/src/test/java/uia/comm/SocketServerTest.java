@@ -28,19 +28,8 @@ import uia.comm.protocol.ng.NGProtocol;
 
 public class SocketServerTest {
 
-    private final NGProtocol<SocketDataController> serverProtocol;
-
-    private final NGProtocol<SocketDataController> clientProtocol;
-
-    private final MyManager manager;
-
     public SocketServerTest() {
         PropertyConfigurator.configure("log4j.properties");
-
-        this.manager = new MyManager();
-        this.serverProtocol = new NGProtocol<SocketDataController>();
-        this.clientProtocol = new NGProtocol<SocketDataController>();
-
     }
 
     @Test
@@ -49,7 +38,7 @@ public class SocketServerTest {
         server.start();
 
         for (int i = 0; i < 5; i++) {
-            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "oo-" + i);
+            SocketClient client = new SocketClient(new NGProtocol<SocketDataController>(), new MyManager(), "oo-" + i);
             Assert.assertTrue(client.connect("localhost", 2234));
             Thread.sleep(500);
             Assert.assertEquals(1, server.getClientCount());
@@ -64,7 +53,7 @@ public class SocketServerTest {
         server.start();
 
         for (int i = 0; i < 5; i++) {
-            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "oec-" + i);
+            SocketClient client = new SocketClient(new NGProtocol<SocketDataController>(), new MyManager(), "oec-" + i);
             Assert.assertTrue(client.connect("localhost", 2235));
             Thread.sleep(500);
             Assert.assertEquals(1, server.getClientCount());
@@ -79,7 +68,7 @@ public class SocketServerTest {
         server.start();
 
         for (int i = 0; i < 5; i++) {
-            SocketClient client = new SocketClient(this.clientProtocol, this.manager, "n-" + i);
+            SocketClient client = new SocketClient(new NGProtocol<SocketDataController>(), new MyManager(), "n-" + i);
             Assert.assertTrue(client.connect("localhost", 2236));
             Thread.sleep(500);
             Assert.assertEquals(i + 1, server.getClientCount());
@@ -94,7 +83,7 @@ public class SocketServerTest {
         server.setIdleTime(1500);
         server.start();
 
-        SocketClient client = new SocketClient(this.clientProtocol, this.manager, "clnt");
+        SocketClient client = new SocketClient(new NGProtocol<SocketDataController>(), new MyManager(), "clnt");
         Assert.assertTrue(client.connect("localhost", 2238));
         Thread.sleep(500);
         Assert.assertEquals(1, server.getClientCount());
@@ -106,9 +95,9 @@ public class SocketServerTest {
 
     private SocketServer create(String name, int port, ConnectionStyle cs) throws Exception {
         final SocketServer server = new SocketServer(
-                this.serverProtocol,
+                new NGProtocol<SocketDataController>(),
                 port,
-                this.manager,
+                new MyManager(),
                 name,
                 cs);
         server.addServerListener(new SocketServerListener() {
