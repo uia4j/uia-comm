@@ -40,7 +40,7 @@ public class SocketServerTest {
         for (int i = 0; i < 5; i++) {
             SocketClient client = new SocketClient(new NGProtocol<SocketDataController>(), new MyManager(), "oo-" + i);
             Assert.assertTrue(client.connect("localhost", 2234));
-            Thread.sleep(500);
+            Thread.sleep(4000);
             Assert.assertEquals(1, server.getClientCount());
         }
 
