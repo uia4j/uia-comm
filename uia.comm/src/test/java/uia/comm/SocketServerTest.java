@@ -37,7 +37,7 @@ public class SocketServerTest {
         SocketServer server = create("OnlyOne", 2234, ConnectionStyle.ONLYONE);
         server.start();
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
             SocketClient client = new SocketClient(new NGProtocol<SocketDataController>(), new MyManager(), "oo-" + i);
             Assert.assertTrue(client.connect("localhost", 2234));
             Thread.sleep(4000);
@@ -52,10 +52,10 @@ public class SocketServerTest {
         SocketServer server = create("OneEachClient", 2235, ConnectionStyle.ONE_EACH_CLIENT);
         server.start();
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
             SocketClient client = new SocketClient(new NGProtocol<SocketDataController>(), new MyManager(), "oec-" + i);
             Assert.assertTrue(client.connect("localhost", 2235));
-            Thread.sleep(500);
+            Thread.sleep(4000);
             Assert.assertEquals(1, server.getClientCount());
         }
 
@@ -67,10 +67,10 @@ public class SocketServerTest {
         SocketServer server = create("Normal", 2236, ConnectionStyle.NORMAL);
         server.start();
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
             SocketClient client = new SocketClient(new NGProtocol<SocketDataController>(), new MyManager(), "n-" + i);
             Assert.assertTrue(client.connect("localhost", 2236));
-            Thread.sleep(500);
+            Thread.sleep(4000);
             Assert.assertEquals(i + 1, server.getClientCount());
         }
 
