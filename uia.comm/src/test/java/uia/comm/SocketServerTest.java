@@ -2,13 +2,13 @@
  * Copyright 2017 UIA
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * the License. You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -48,49 +48,51 @@ public class SocketServerTest {
 
     @Test
     public void testOnlyOne() throws Exception {
-        SocketServer server = create(2234, ConnectionStyle.ONLYONE);
+        SocketServer server = create("OnlyOne", 2234, ConnectionStyle.ONLYONE);
         server.start();
         for (int i = 0; i < 5; i++) {
             SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c" + i);
             Assert.assertTrue(client.connect("localhost", 2234));
+            Thread.sleep(500);
             Assert.assertEquals(1, server.getClientCount());
         }
-        
-		Thread.sleep(500);
+
+        Thread.sleep(500);
         server.stop();
     }
 
     @Test
     public void testOneEachClient() throws Exception {
-        SocketServer server = create(2235, ConnectionStyle.ONE_EACH_CLIENT);
+        SocketServer server = create("OneEachClient", 2235, ConnectionStyle.ONE_EACH_CLIENT);
         server.start();
         for (int i = 0; i < 5; i++) {
             SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c" + i);
             Assert.assertTrue(client.connect("localhost", 2235));
+            Thread.sleep(500);
             Assert.assertEquals(1, server.getClientCount());
         }
-        
-		Thread.sleep(500);
+
+        Thread.sleep(500);
         server.stop();
     }
 
     @Test
     public void testNormalType() throws Exception {
-        SocketServer server = create(2236, ConnectionStyle.NORMAL);
+        SocketServer server = create("Normal", 2236, ConnectionStyle.NORMAL);
         server.start();
         for (int i = 0; i < 5; i++) {
             SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c" + i);
             Assert.assertTrue(client.connect("localhost", 2236));
             Assert.assertEquals(i + 1, server.getClientCount());
         }
-        
-		Thread.sleep(500);
+
+        Thread.sleep(500);
         server.stop();
     }
 
     @Test
     public void testIdle() throws Exception {
-        SocketServer server = create(2238, ConnectionStyle.NORMAL);
+        SocketServer server = create("Idle", 2238, ConnectionStyle.NORMAL);
         server.setIdleTime(1500);
         server.start();
         SocketClient client = new SocketClient(this.clientProtocol, this.manager, "c1");
@@ -101,12 +103,12 @@ public class SocketServerTest {
         server.stop();
     }
 
-    private SocketServer create(int port, ConnectionStyle cs) throws Exception {
+    private SocketServer create(String name, int port, ConnectionStyle cs) throws Exception {
         final SocketServer server = new SocketServer(
                 this.serverProtocol,
                 port,
                 this.manager,
-                "TestServer",
+                name,
                 cs);
         server.addServerListener(new SocketServerListener() {
 
