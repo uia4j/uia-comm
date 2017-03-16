@@ -74,7 +74,7 @@
 				<version>2.12.4</version>
 				<configuration>
 					<excludes>
-						<exclude>uia/comm/RS232*.java</exclude>
+						<exclude>uia/comm/*.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
