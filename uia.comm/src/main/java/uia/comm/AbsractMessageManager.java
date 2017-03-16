@@ -20,7 +20,7 @@ package uia.comm;
 
 /**
  *
- * @author Kyle
+ * @author Kyle K. Lin
  *
  */
 public abstract class AbsractMessageManager implements MessageManager {

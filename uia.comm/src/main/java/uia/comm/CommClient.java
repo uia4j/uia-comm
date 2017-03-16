@@ -24,7 +24,7 @@ import uia.comm.protocol.Protocol;
 
 /**
  *
- * @author Kyle
+ * @author Kyle K. Lin
  *
  * @param <C>
  */

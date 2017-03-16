@@ -23,6 +23,11 @@ import org.junit.Test;
 
 import uia.comm.protocol.htx.HTxProtocol;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ */
 public class HTxProtocolTest extends AbstractProtocolTest {
 
     private final HTxProtocol<Object> protocol;

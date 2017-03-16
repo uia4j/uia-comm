@@ -20,8 +20,9 @@ package uia.comm.protocol;
 
 /**
  *
- * @author Kyle
+ * @author Kyle K. Lin
  *
+ * @param <C>
  */
 public interface Protocol<C> {
 

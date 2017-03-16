@@ -21,6 +21,12 @@ package uia.comm.protocol.ng;
 import uia.comm.protocol.AbstractProtocolMonitor;
 import uia.comm.protocol.ProtocolEventArgs;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public class NGProtocolMonitor<C> extends AbstractProtocolMonitor<C> {
 
     final NGProtocol<C> protocol;

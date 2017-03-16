@@ -18,6 +18,12 @@
  *******************************************************************************/
 package uia.comm.protocol.ht;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public interface HTState<C> {
 
     public void accept(HTProtocolMonitor<C> monitor, byte one);

@@ -22,8 +22,9 @@ import java.util.ArrayList;
 
 /**
  *
- * @author Kyle
+ * @author Kyle K. Lin
  *
+ * @param <T>
  */
 public class MultiProtocolMonitor<T> implements ProtocolMonitor<T> {
 

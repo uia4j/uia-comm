@@ -18,6 +18,12 @@
  *******************************************************************************/
 package uia.comm.protocol.ht;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public class IdleState<C> implements HTState<C> {
 
     @Override

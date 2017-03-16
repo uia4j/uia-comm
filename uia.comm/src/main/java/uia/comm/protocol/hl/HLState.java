@@ -18,6 +18,12 @@
  *******************************************************************************/
 package uia.comm.protocol.hl;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public interface HLState<T> {
 
     public void accept(HLProtocolMonitor<T> monitor, byte one);

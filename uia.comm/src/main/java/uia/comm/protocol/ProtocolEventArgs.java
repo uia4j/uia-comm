@@ -18,8 +18,18 @@
  *******************************************************************************/
 package uia.comm.protocol;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ */
 public class ProtocolEventArgs {
 
+    /**
+     *
+     * @author Kyle K. Lin
+     *
+     */
     public enum ErrorCode {
         OK,
         ERR_HEAD,

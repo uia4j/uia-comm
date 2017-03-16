@@ -21,6 +21,12 @@ package uia.comm.protocol.ht;
 import uia.comm.protocol.AbstractProtocol;
 import uia.comm.protocol.ProtocolMonitor;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public class HTProtocol<C> extends AbstractProtocol<C> {
 
     final byte[] head;

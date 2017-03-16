@@ -20,6 +20,11 @@ package uia.comm;
 
 import java.util.concurrent.Callable;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ */
 class MessageCallOutConcurrent implements MessageCallOut, Callable<byte[]> {
 
     private final String txId;

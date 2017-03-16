@@ -2,13 +2,13 @@
  * Copyright 2017 UIA
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * the License. You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,14 +27,19 @@ import org.junit.Before;
 import org.junit.Test;
 
 import uia.comm.SocketServer.ConnectionStyle;
-import uia.comm.my.ToServerRequest;
 import uia.comm.my.MyManager;
+import uia.comm.my.ToServerRequest;
 import uia.comm.protocol.ht.HTProtocol;
 import uia.comm.protocol.ng.NGProtocol;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ */
 public class NGSocketTest {
-	
-	private static final int PORT = 4234;
+
+    private static final int PORT = 4234;
 
     private final MyManager manager;
 
@@ -109,12 +114,12 @@ public class NGSocketTest {
         client2.connect("localhost", PORT);
 
         Map<String, byte[]> result = group.send(data, "2", 1000);
-        for(Map.Entry<String, byte[]> e : result.entrySet()) {
-        	Assert.assertEquals(7, e.getValue().length);
+        for (Map.Entry<String, byte[]> e : result.entrySet()) {
+            Assert.assertEquals(7, e.getValue().length);
         }
 
         // close
-		Thread.sleep(500);
+        Thread.sleep(500);
         client1.disconnect();
         client2.disconnect();
     }

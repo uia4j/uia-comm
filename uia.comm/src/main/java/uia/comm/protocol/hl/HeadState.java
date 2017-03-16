@@ -20,6 +20,12 @@ package uia.comm.protocol.hl;
 
 import uia.comm.protocol.ProtocolEventArgs;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public class HeadState<T> implements HLState<T> {
 
     @Override

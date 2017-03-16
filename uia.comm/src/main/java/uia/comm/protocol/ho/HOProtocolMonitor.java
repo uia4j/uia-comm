@@ -21,6 +21,12 @@ package uia.comm.protocol.ho;
 import uia.comm.protocol.AbstractProtocolMonitor;
 import uia.comm.protocol.ProtocolEventArgs;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public class HOProtocolMonitor<C> extends AbstractProtocolMonitor<C> {
 
     final HOProtocol<C> protocol;
@@ -83,6 +89,6 @@ public class HOProtocolMonitor<C> extends AbstractProtocolMonitor<C> {
     void cancelPacking(ProtocolEventArgs.ErrorCode errorCode) {
         ProtocolEventArgs args = new ProtocolEventArgs(packing(), errorCode);
         reset();
-        this.protocol.raiseBorken(this, args);
+        this.protocol.raiseMessageError(this, args);
     }
 }

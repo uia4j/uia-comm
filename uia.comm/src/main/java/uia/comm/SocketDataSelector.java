@@ -27,7 +27,7 @@ import java.util.Iterator;
 
 /**
  *
- * @author Kyle
+ * @author Kyle K. Lin
  *
  */
 public class SocketDataSelector {

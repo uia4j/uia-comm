@@ -23,6 +23,11 @@ import org.junit.Test;
 
 import uia.comm.protocol.ht.HTProtocol;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ */
 public class HTProtocolTest extends AbstractProtocolTest {
 
     private final HTProtocol<Object> protocol;

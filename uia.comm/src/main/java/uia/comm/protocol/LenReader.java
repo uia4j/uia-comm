@@ -18,6 +18,11 @@
  *******************************************************************************/
 package uia.comm.protocol;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ */
 public interface LenReader {
 
     public int read(byte[] data);

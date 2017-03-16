@@ -21,7 +21,7 @@ package uia.comm;
 /**
  * Socket server listener.
  *
- * @author Kyle
+ * @author Kyle K. Lin
  *
  */
 public interface SocketServerListener {

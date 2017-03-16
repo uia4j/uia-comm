@@ -2,13 +2,13 @@
  * Copyright 2017 UIA
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * the License. You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,8 +24,13 @@ import uia.comm.MessageCallIn;
 import uia.comm.MessageCallOut;
 import uia.comm.SocketDataController;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ */
 public class ToServerRequest implements MessageCallOut, MessageCallIn<SocketDataController> {
-	
+
     @Override
     public String getCmdName() {
         return "ABC";
@@ -38,9 +43,9 @@ public class ToServerRequest implements MessageCallOut, MessageCallIn<SocketData
 
     @Override
     public void execute(byte[] reply) {
-    	Assert.assertArrayEquals(
-    			new byte[] { (byte) 0x8a, 0x44, 0x45, 0x46, 0x32, 0x31, (byte) 0xa8 },
-    			reply);
+        Assert.assertArrayEquals(
+                new byte[] { (byte) 0x8a, 0x44, 0x45, 0x46, 0x32, 0x31, (byte) 0xa8 },
+                reply);
     }
 
     @Override
@@ -50,7 +55,7 @@ public class ToServerRequest implements MessageCallOut, MessageCallIn<SocketData
 
     @Override
     public synchronized void execute(byte[] request, SocketDataController controller) {
-    	// DEF21
+        // DEF21
         boolean r = controller.send(new byte[] { (byte) 0x8a, 0x44, 0x45, 0x46, 0x32, 0x31, (byte) 0xa8 }, 1);
         Assert.assertTrue(r);
     }

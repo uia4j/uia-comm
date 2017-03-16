@@ -20,6 +20,12 @@ package uia.comm.protocol;
 
 import java.util.ArrayList;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public abstract class AbstractProtocolMonitor<C> implements ProtocolMonitor<C> {
 
     protected ArrayList<Byte> data;

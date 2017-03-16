@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 /**
  *
- * @author Kyle
+ * @author Kyle K. Lin
  *
  * @param <C>
  */
@@ -33,6 +33,7 @@ public abstract class AbstractProtocol<C> implements Protocol<C> {
     private String aliasName;
 
     /**
+     * Constructor.
      *
      */
     public AbstractProtocol() {
@@ -60,9 +61,9 @@ public abstract class AbstractProtocol<C> implements Protocol<C> {
     }
 
     /**
-     *
-     * @param monitor
-     * @param args
+     * Raise if structure of message is correct.
+     * @param monitor Monitor.
+     * @param args Event arguments.
      */
     public synchronized void raiseMessageReceived(ProtocolMonitor<C> monitor, ProtocolEventArgs args) {
         if (args.getData() == null || args.getData().length == 0) {
@@ -80,11 +81,11 @@ public abstract class AbstractProtocol<C> implements Protocol<C> {
     }
 
     /**
-     *
-     * @param monitor
-     * @param args
+     * Raise if structure of message is incorrect.
+     * @param monitor Monitor.
+     * @param args Event arguments.
      */
-    public synchronized void raiseBorken(ProtocolMonitor<C> monitor, ProtocolEventArgs args) {
+    public synchronized void raiseMessageError(ProtocolMonitor<C> monitor, ProtocolEventArgs args) {
         if (args.getData() == null || args.getData().length == 0) {
             return;
         }

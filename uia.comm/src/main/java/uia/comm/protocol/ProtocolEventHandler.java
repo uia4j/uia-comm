@@ -18,6 +18,12 @@
  *******************************************************************************/
 package uia.comm.protocol;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public interface ProtocolEventHandler<C> {
 
     public void messageReceived(ProtocolMonitor<C> monitor, ProtocolEventArgs args);

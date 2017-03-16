@@ -22,8 +22,9 @@ import java.util.List;
 
 /**
  *
- * @author Kyle
+ * @author Kyle K. Lin
  *
+ * @param <T>
  */
 public class MultiProtocol<T> extends AbstractProtocol<T> {
 

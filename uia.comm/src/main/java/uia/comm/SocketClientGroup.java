@@ -27,7 +27,7 @@ import java.util.concurrent.Future;
 
 /**
  *
- * @author Kan
+ * @author Kyle K. Lin
  *
  */
 public class SocketClientGroup {

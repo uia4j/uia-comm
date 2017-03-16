@@ -2,13 +2,13 @@
  * Copyright 2017 UIA
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * the License. You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,6 +26,11 @@ import org.junit.Test;
 import uia.comm.protocol.ho.HOProtocol;
 import uia.comm.protocol.ht.HTProtocol;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ */
 public class MultiProtocolTest extends AbstractProtocolTest {
 
     private final MultiProtocol<Object> protocol;
@@ -84,7 +89,7 @@ public class MultiProtocolTest extends AbstractProtocolTest {
     @Test
     public void testEx1() {
         ProtocolMonitor<Object> monitor = this.protocol.createMonitor("abc");
-        
+
         Assert.assertEquals("IdleState", monitor.getStateInfo());
         monitor.read((byte) 0x8a);
         Assert.assertEquals("RunningState", monitor.getStateInfo());
@@ -106,7 +111,7 @@ public class MultiProtocolTest extends AbstractProtocolTest {
 
         monitor.read((byte) 0x46);
         Assert.assertEquals("IdleState", monitor.getStateInfo());
-        
+
         monitor.read((byte) 0x8a);
         Assert.assertEquals("RunningState", monitor.getStateInfo());
         monitor.read((byte) 0x8a);
@@ -124,7 +129,7 @@ public class MultiProtocolTest extends AbstractProtocolTest {
     @Test
     public void testEx2() {
         ProtocolMonitor<Object> monitor = this.protocol.createMonitor("abc");
-        
+
         Assert.assertEquals("IdleState", monitor.getStateInfo());
         monitor.read((byte) 0x41);
         Assert.assertEquals("RunningState", monitor.getStateInfo());

@@ -18,6 +18,12 @@
  *******************************************************************************/
 package uia.comm.protocol.ho;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public class IdleState<T> implements HOState<T> {
 
     @Override

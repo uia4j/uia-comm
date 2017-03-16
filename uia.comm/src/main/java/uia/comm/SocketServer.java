@@ -46,6 +46,7 @@ import uia.utils.ByteUtils;
  * The socket server
  *
  * @author Kyle K. Lin
+ *
  */
 public class SocketServer implements ProtocolEventHandler<SocketDataController> {
 

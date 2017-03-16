@@ -18,6 +18,12 @@
  *******************************************************************************/
 package uia.comm.protocol.htx;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public interface HTxState<C> {
 
     public void accept(HTxProtocolMonitor<C> monitor, byte one);

@@ -44,7 +44,7 @@ import uia.utils.ByteUtils;
 /**
  * Socket client.
  *
- * @author Kyle
+ * @author Kyle K. Lin
  *
  */
 public class SocketClient implements ProtocolEventHandler<SocketDataController>, CommClient<SocketDataController> {

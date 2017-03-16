@@ -26,6 +26,11 @@ import uia.comm.SocketServer.ConnectionStyle;
 import uia.comm.my.MyManager;
 import uia.comm.protocol.ng.NGProtocol;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ */
 public class SocketServerTest {
 
     public SocketServerTest() {

@@ -18,6 +18,12 @@
  *******************************************************************************/
 package uia.comm.protocol.htx;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public class IdleState<C> implements HTxState<C> {
 
     @Override

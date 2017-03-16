@@ -76,6 +76,6 @@ public class HTxProtocolMonitor<C> extends AbstractProtocolMonitor<C> {
 
     void cancelPacking(ProtocolEventArgs.ErrorCode errorCode) {
         ProtocolEventArgs args = new ProtocolEventArgs(packing(), errorCode);
-        this.protocol.raiseBorken(this, args);
+        this.protocol.raiseMessageError(this, args);
     }
 }

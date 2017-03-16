@@ -22,6 +22,12 @@ import uia.comm.protocol.AbstractProtocol;
 import uia.comm.protocol.LenReader;
 import uia.comm.protocol.ProtocolMonitor;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public class HLProtocol<T> extends AbstractProtocol<T> {
 
     final int lenStartOffset;

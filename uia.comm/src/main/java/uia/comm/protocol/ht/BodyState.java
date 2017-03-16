@@ -20,6 +20,12 @@ package uia.comm.protocol.ht;
 
 import uia.comm.protocol.ProtocolEventArgs;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public class BodyState<C> implements HTState<C> {
 
     private int headIdx;

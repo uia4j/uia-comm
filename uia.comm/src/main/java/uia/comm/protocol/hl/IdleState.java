@@ -18,6 +18,12 @@
  *******************************************************************************/
 package uia.comm.protocol.hl;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public class IdleState<T> implements HLState<T> {
 
     @Override

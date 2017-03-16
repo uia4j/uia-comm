@@ -26,7 +26,7 @@ import uia.utils.ByteUtils;
 
 /**
  *
- * @author Kan
+ * @author Kyle K. Lin
  *
  */
 public class VirtualSocketClient {

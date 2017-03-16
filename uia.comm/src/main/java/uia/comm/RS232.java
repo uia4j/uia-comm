@@ -45,7 +45,7 @@ import uia.utils.ByteUtils;
 
 /**
  *
- * @author Kyle
+ * @author Kyle K. Lin
  *
  */
 public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {

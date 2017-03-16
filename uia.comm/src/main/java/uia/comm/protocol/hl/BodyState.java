@@ -20,6 +20,12 @@ package uia.comm.protocol.hl;
 
 import uia.comm.protocol.ProtocolEventArgs;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public class BodyState<T> implements HLState<T> {
 
     private int len;

@@ -23,6 +23,11 @@ import org.junit.Test;
 
 import uia.comm.protocol.ho.HOProtocol;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ */
 public class HOProtocolTest extends AbstractProtocolTest {
 
     @Test

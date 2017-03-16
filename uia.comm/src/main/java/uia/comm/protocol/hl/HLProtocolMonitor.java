@@ -21,6 +21,12 @@ package uia.comm.protocol.hl;
 import uia.comm.protocol.AbstractProtocolMonitor;
 import uia.comm.protocol.ProtocolEventArgs;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ * @param <C>
+ */
 public class HLProtocolMonitor<T> extends AbstractProtocolMonitor<T> {
 
     int headIdx;
@@ -85,7 +91,7 @@ public class HLProtocolMonitor<T> extends AbstractProtocolMonitor<T> {
     {
         ProtocolEventArgs args = new ProtocolEventArgs(packing(), errorCode);
         this.data.clear();
-        this.protocol.raiseBorken(this, args);
+        this.protocol.raiseMessageError(this, args);
     }
 
     void finishPacking()

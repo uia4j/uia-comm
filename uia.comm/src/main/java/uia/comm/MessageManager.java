@@ -18,6 +18,11 @@
  *******************************************************************************/
 package uia.comm;
 
+/**
+ *
+ * @author Kyle K. Lin
+ *
+ */
 public interface MessageManager {
 
     /**

@@ -33,7 +33,7 @@ import uia.utils.ByteUtils;
 
 /**
  *
- * @author Kyle
+ * @author Kyle K. Lin
  *
  */
 public class SocketDataController implements DataController {
