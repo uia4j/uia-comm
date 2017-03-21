@@ -7,6 +7,14 @@ UIA Comm
 
 Socket client, server & RS232 library.
 
+## Android Support
+
+* SocketClient - tested
+
+* SocketServer - working
+
+* RS232 - __NOT SUPPORT__
+
 
 ## Key Abstraction
 
@@ -58,7 +66,7 @@ pom.xml in your project:
 <dependency>
     <groupId>uia</groupId>
     <artifactId>uia.comm</artifactId>
-    <version>0.2.0</version>
+    <version>0.2.1</version>
 </dependency>
 ```
 
