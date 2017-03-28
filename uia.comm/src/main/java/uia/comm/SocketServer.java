@@ -84,10 +84,6 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
     private int idleTime;
 
-    static {
-
-    }
-
     public SocketServer(Protocol<SocketDataController> protocol, int port, MessageManager manager, String aliasName) throws Exception {
         this(protocol, port, manager, aliasName, ConnectionStyle.NORMAL);
     }
