@@ -72,14 +72,6 @@ public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {
 
     private boolean started;
 
-    private int baudrate;
-
-    private int dataBits;
-
-    private int stopBits;
-
-    private int parity;
-
     public RS232(final Protocol<RS232> protocol, final MessageManager manager, String aliasName) {
         this.protocol = protocol;
         this.protocol.addMessageHandler(this);
@@ -101,11 +93,6 @@ public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {
      * @throws Exception
      */
     public boolean connect(String portName, int baudrate, int dataBits, int stopBits, int parity) throws Exception {
-        this.baudrate = baudrate;
-        this.dataBits = dataBits;
-        this.stopBits = stopBits;
-        this.parity = parity;
-
         this.monitor = this.protocol.createMonitor(this.aliasName);
         this.monitor.setController(this);
 
@@ -121,7 +108,7 @@ public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {
         CommPort commPort = portIdentifier.open(getClass().getName(), 2000);
 
         this.serialPort = (SerialPort) commPort;
-        this.serialPort.setSerialPortParams(this.baudrate, this.dataBits, this.stopBits, this.parity);
+        this.serialPort.setSerialPortParams(baudrate, dataBits, stopBits, parity);
 
         this.in = this.serialPort.getInputStream();
         this.out = this.serialPort.getOutputStream();
@@ -181,7 +168,8 @@ public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {
 
         try {
             final byte[] encoded = this.manager.encode(data);
-            while (times > 0) {
+            int _times = Math.max(1, times);
+            while (_times > 0) {
                 try {
                     this.out.write(encoded);
                     logger.debug(String.format("%s> send %s", this.aliasName, ByteUtils.toHexString(data, 100)));
@@ -191,7 +179,7 @@ public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {
 
                 }
                 finally {
-                    times--;
+                    _times--;
                 }
             }
             return false;

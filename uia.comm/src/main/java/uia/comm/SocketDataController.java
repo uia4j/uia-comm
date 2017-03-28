@@ -82,7 +82,8 @@ public class SocketDataController implements DataController {
     public synchronized boolean send(byte[] data, int times) {
         this.lastUpdate = System.currentTimeMillis();
         final byte[] encoded = this.mgr.encode(data);
-        while (times > 0) {
+        int _times = Math.max(1, times);
+        while (_times > 0) {
             try {
                 this.ch.socket().setSendBufferSize(encoded.length);
                 int cnt = this.ch.write(ByteBuffer.wrap(encoded));
@@ -98,7 +99,7 @@ public class SocketDataController implements DataController {
 
             }
             finally {
-                times--;
+                _times--;
             }
         }
         return false;

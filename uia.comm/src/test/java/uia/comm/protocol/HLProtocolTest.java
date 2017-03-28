@@ -30,9 +30,6 @@ import uia.comm.protocol.hl.HLProtocol;
  */
 public class HLProtocolTest extends AbstractProtocolTest {
 
-    public HLProtocolTest() {
-    }
-
     @Test
     public void testNormal() {
         HLProtocol<Object> protocol = new HLProtocol<Object>(

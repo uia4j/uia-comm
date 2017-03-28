@@ -43,8 +43,6 @@ public class NGSocketTest {
 
     private final MyManager manager;
 
-    private final ToServerRequest toServerReq;
-
     private final NGProtocol<SocketDataController> serverProtocol;
 
     private final HTProtocol<SocketDataController> clientProtocol;
@@ -55,7 +53,6 @@ public class NGSocketTest {
         PropertyConfigurator.configure("log4j.properties");
 
         this.manager = new MyManager();
-        this.toServerReq = new ToServerRequest();
 
         this.serverProtocol = new NGProtocol<SocketDataController>();
         this.clientProtocol = new HTProtocol<SocketDataController>(
@@ -63,7 +60,7 @@ public class NGSocketTest {
                 new byte[] { (byte) 0xa8 });
 
         this.server = new SocketServer(this.serverProtocol, PORT, this.manager, "TestServer1", ConnectionStyle.NORMAL);
-        this.server.registerCallin(this.toServerReq);
+        this.server.registerCallin(new ToServerRequest());
         this.server.addServerListener(new SocketServerListener() {
 
             @Override

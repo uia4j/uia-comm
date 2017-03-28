@@ -38,8 +38,6 @@ public class HTSocketTest {
 
     private static final int PORT = 3234;
 
-    private final HTProtocol<SocketDataController> serverProtocol;
-
     private final HTProtocol<SocketDataController> clientProtocol;
 
     private final SocketServer server;
@@ -58,16 +56,14 @@ public class HTSocketTest {
         this.manager = new MyManager();
         this.toClientReq = new ToClientRequest();
         this.toServerReq = new ToServerRequest();
-
-        this.serverProtocol = new HTProtocol<SocketDataController>(
-                new byte[] { (byte) 0x8a },
-                new byte[] { (byte) 0xa8 });
-
         this.clientProtocol = new HTProtocol<SocketDataController>(
                 new byte[] { (byte) 0x8a },
                 new byte[] { (byte) 0xa8 });
 
-        this.server = new SocketServer(this.serverProtocol, PORT, this.manager, "svr");
+        HTProtocol<SocketDataController> serverProtocol = new HTProtocol<SocketDataController>(
+                new byte[] { (byte) 0x8a },
+                new byte[] { (byte) 0xa8 });
+        this.server = new SocketServer(serverProtocol, PORT, this.manager, "svr");
         this.server.registerCallin(this.toServerReq);
         this.server.addServerListener(new SocketServerListener() {
 
