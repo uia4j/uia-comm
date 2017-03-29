@@ -1,6 +1,7 @@
 UIA Comm
 ================
 
+[![Download](https://api.bintray.com/packages/gazer2kanlin/maven/uia.comm4j/images/download.svg) ](https://bintray.com/gazer2kanlin/maven/uia.comm4j/_latestVersion)
 [![Build Status](https://travis-ci.org/gazer2kanlin/uia.comm4j.svg?branch=0.2.0.0)](https://travis-ci.org/gazer2kanlin/uia.comm4j)
 [![Codecov](https://img.shields.io/codecov/c/github/gazer2kanlin/uia.comm4j.svg)](https://codecov.io/gh/gazer2kanlin/uia.comm4j)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9766faacb361423b9b6e8e95bf3024d6)](https://www.codacy.com/app/gazer2kanlin/uia-comm4j?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=gazer2kanlin/uia.comm4j&amp;utm_campaign=Badge_Grade)
