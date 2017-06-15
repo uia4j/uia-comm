@@ -67,7 +67,7 @@ public abstract class AbstractProtocolMonitor<C> implements ProtocolMonitor<C> {
     public void reset() {
         this.data.clear();
         this.data.trimToSize();
-        System.gc();
+        // System.gc();
     }
 
     @Override
@@ -88,7 +88,7 @@ public abstract class AbstractProtocolMonitor<C> implements ProtocolMonitor<C> {
         this.data.clear();
         this.data.trimToSize();
         this.data = new ArrayList<Byte>();
-        System.gc();
+        // System.gc();
 
         return result;
     }
