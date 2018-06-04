@@ -18,18 +18,12 @@
  *******************************************************************************/
 package uia.comm;
 
-import java.util.Map;
-
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import uia.comm.SocketServer.ConnectionStyle;
-import uia.comm.my.MyManager;
-import uia.comm.my.ToServerRequest;
-import uia.comm.protocol.ht.HTProtocol;
 import uia.comm.protocol.ng.NGProtocol;
 
 /**
@@ -37,34 +31,27 @@ import uia.comm.protocol.ng.NGProtocol;
  * @author Kyle K. Lin
  *
  */
-public class NGSocketTest {
+public class NGSocketTest implements MessageManager, MessageCallOut, MessageCallIn<SocketDataController> {
 
-    private static final int PORT = 4234;
-
-    private final MyManager manager;
-
-    private final HTProtocol<SocketDataController> clientProtocol;
+    private static final int PORT = 4003;
 
     private final SocketServer server;
 
     public NGSocketTest() throws Exception {
         PropertyConfigurator.configure("log4j.properties");
 
-        this.manager = new MyManager();
-        this.clientProtocol = new HTProtocol<SocketDataController>(
-                new byte[] { (byte) 0x8a },
-                new byte[] { (byte) 0xa8 });
-
-        this.server = new SocketServer(new NGProtocol<SocketDataController>(), PORT, this.manager, "TestServer1", ConnectionStyle.NORMAL);
-        this.server.registerCallin(new ToServerRequest());
+        this.server = new SocketServer(new NGProtocol<SocketDataController>(), PORT, this, "TestServer1", ConnectionStyle.ONE_EACH_CLIENT);
+        this.server.registerCallin(this);
         this.server.addServerListener(new SocketServerListener() {
 
             @Override
             public void connected(SocketDataController controller) {
+                System.out.println(controller.getName() + " connected");
             }
 
             @Override
             public void disconnected(SocketDataController controller) {
+                System.out.println(controller.getName() + " disconnected");
             }
 
         });
@@ -73,47 +60,79 @@ public class NGSocketTest {
     @Before
     public void before() throws Exception {
         this.server.start();
-        Thread.sleep(500);
+        System.out.println("before");
     }
 
     @After
     public void after() throws Exception {
         this.server.stop();
+        System.out.println("after");
     }
 
     @Test
-    public void testInOut() throws Exception {
-        int size = 1280;
-        // ABC2
-        byte[] data = new byte[size];
-        data[0] = (byte) 0x8a;
-        data[1] = 0x41;
-        data[2] = 0x42;
-        data[3] = 0x43;
-        data[4] = 0x32;
-        for (int i = 5; i < size; i++) {
-            data[i] = (byte) (0x41 + i % 10);
+    public void testListen() throws Exception {
+        try {
+            System.out.println("Press  to continue...");
+            System.in.read();
         }
-        data[size - 1] = (byte) 0xa8;
-
-        SocketClient client1 = new SocketClient(this.clientProtocol, this.manager, "c1");
-        SocketClient client2 = new SocketClient(this.clientProtocol, this.manager, "c2");
-
-        SocketClientGroup group = new SocketClientGroup(4);
-        group.register(client1);
-        group.register(client2);
-
-        client1.connect("localhost", PORT);
-        client2.connect("localhost", PORT);
-
-        Map<String, byte[]> result = group.send(data, "2", 1000);
-        for (Map.Entry<String, byte[]> e : result.entrySet()) {
-            Assert.assertEquals(7, e.getValue().length);
+        catch (Exception e) {
+            e.printStackTrace();
         }
+    }
 
-        // close
-        Thread.sleep(500);
-        client1.disconnect();
-        client2.disconnect();
+    @Override
+    public String getCmdName() {
+        return "ABC";
+    }
+
+    @Override
+    public void execute(byte[] request, SocketDataController controller) {
+        System.out.println(controller.getName() + ": " + new String(request));
+    }
+
+    @Override
+    public String getTxId() {
+        return "ABC";
+    }
+
+    @Override
+    public void execute(byte[] reply) {
+        System.out.println("executed");
+    }
+
+    @Override
+    public void timeout() {
+        System.out.println("timeout");
+    }
+
+    @Override
+    public boolean isCallIn(String cmd) {
+        return true;
+    }
+
+    @Override
+    public String findCmd(byte[] data) {
+        return "ABC";
+    }
+
+    @Override
+    public String findTx(byte[] data) {
+        return "ABC";
+    }
+
+    @Override
+    public byte[] decode(byte[] data) {
+        // TODO Auto-generated method stub
+        return data;
+    }
+
+    @Override
+    public byte[] encode(byte[] data) {
+        return data;
+    }
+
+    @Override
+    public boolean validate(byte[] data) {
+        return true;
     }
 }
