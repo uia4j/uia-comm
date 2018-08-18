@@ -24,23 +24,24 @@ import org.junit.Before;
 import org.junit.Test;
 
 import uia.comm.SocketServer.ConnectionStyle;
-import uia.comm.protocol.ng.NGProtocol;
+import uia.comm.protocol.xml.XMLProtocol;
 
 /**
  *
  * @author Kyle K. Lin
  *
  */
-public class NGSocketTest implements MessageManager, MessageCallOut, MessageCallIn<SocketDataController> {
+public class XMLSocketTest implements MessageManager, MessageCallOut, MessageCallIn<SocketDataController> {
 
     private static final int PORT = 4003;
 
     private final SocketServer server;
 
-    public NGSocketTest() throws Exception {
+    public XMLSocketTest() throws Exception {
         PropertyConfigurator.configure("log4j.properties");
+
         this.server = new SocketServer(
-                new NGProtocol<SocketDataController>(),
+                new XMLProtocol<SocketDataController>("BBRAUN"),
                 PORT,
                 this,
                 "TestServer1",
