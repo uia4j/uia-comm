@@ -27,6 +27,12 @@ package uia.comm.protocol;
 public interface ProtocolMonitor<C> {
 
     /**
+     * Get data count in this monitor.
+     * @return Data count.
+     */
+    public int getDataLength();
+
+    /**
      * Get protocol which creates this monitor.
      *
      * @return The protocol.

@@ -50,6 +50,7 @@ public abstract class AbstractProtocolMonitor<C> implements ProtocolMonitor<C> {
         this.protocol = protocol;
     }
 
+    @Override
     public int getDataLength() {
         return this.data.size();
     }
