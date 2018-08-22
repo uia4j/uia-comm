@@ -84,6 +84,8 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
     private int idleTime;
 
+    private int maxCache;
+
     public SocketServer(Protocol<SocketDataController> protocol, int port, MessageManager manager, String aliasName) throws Exception {
         this(protocol, port, manager, aliasName, ConnectionStyle.NORMAL);
     }
@@ -111,6 +113,15 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
         this.idleTime = 60000;
         this.port = port;
+        this.maxCache = 10 * 1000;  // 10K
+    }
+
+    public int getMaxCache() {
+        return this.maxCache;
+    }
+
+    public void setMaxCache(int maxCache) {
+        this.maxCache = Math.min(2000000, Math.max(16, maxCache));  // 2M
     }
 
     public int getClientCount() {
@@ -656,6 +667,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
                     client,
                     this.manager,
                     this.protocol.createMonitor(clientId));
+            controller.setMaxCache(this.maxCache);
 
             synchronized (this.controllers) {
                 this.controllers.put(clientId, controller);

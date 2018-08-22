@@ -75,6 +75,8 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     private int port;
 
+    private int maxCache;
+
     /**
      * The constructor.
      *
@@ -103,6 +105,15 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
         this.callIns = new HashMap<String, MessageCallIn<SocketDataController>>();
         this.callOuts = new HashMap<String, MessageCallOut>();
         this.started = false;
+        this.maxCache = 10 * 1000;  // 10K
+    }
+
+    public int getMaxCache() {
+        return this.maxCache;
+    }
+
+    public void setMaxCache(int maxCache) {
+        this.maxCache = Math.min(2000000, Math.max(16, maxCache));  // 2M
     }
 
     @Override
@@ -212,6 +223,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
                     this.ch,
                     this.manager,
                     this.protocol.createMonitor(this.aliasName));
+            this.controller.setMaxCache(this.maxCache);
             this.controller.start();
 
             if (this.clientPort > 0) {

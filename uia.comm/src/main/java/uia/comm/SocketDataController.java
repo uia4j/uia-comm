@@ -54,6 +54,8 @@ public class SocketDataController implements DataController {
 
     private long lastUpdate;
 
+    private int maxCache;
+
     /**
      *
      * @param name Name.
@@ -71,6 +73,15 @@ public class SocketDataController implements DataController {
         this.monitor = monitor;
         this.monitor.setController(this);
         this.lastUpdate = System.currentTimeMillis();
+        this.maxCache = 10 * 1000;  // 10K
+    }
+
+    public int getMaxCache() {
+        return this.maxCache;
+    }
+
+    public void setMaxCache(int maxCache) {
+        this.maxCache = Math.min(2000000, Math.max(16, maxCache));  // 2M
     }
 
     @Override
@@ -182,6 +193,9 @@ public class SocketDataController implements DataController {
                 byte[] value = (byte[]) buffer.flip().array();
                 value = Arrays.copyOf(value, len);
                 for (byte b : value) {
+                    if (this.monitor.getDataLength() > this.maxCache) {
+                        this.monitor.reset();
+                    }
                     this.monitor.read(b);
                 }
             }

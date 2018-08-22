@@ -122,4 +122,13 @@ public class MultiProtocolMonitor<T> implements ProtocolMonitor<T> {
             }
         }
     }
+
+    @Override
+    public int getDataLength() {
+        int dataLength = 0;
+        for (ProtocolMonitor<MultiProtocolMonitor<T>> pm : this.monitors) {
+            dataLength = Math.max(dataLength, pm.getDataLength());
+        }
+        return dataLength;
+    }
 }
