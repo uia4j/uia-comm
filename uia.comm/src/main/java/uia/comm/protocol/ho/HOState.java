@@ -22,7 +22,7 @@ package uia.comm.protocol.ho;
  *
  * @author Kyle K. Lin
  *
- * @param <C>
+ * @param <T> Reference.
  */
 public interface HOState<T> {
 

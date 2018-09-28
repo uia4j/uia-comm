@@ -26,7 +26,7 @@ import uia.comm.protocol.ProtocolMonitor;
  *
  * @author Kyle K. Lin
  *
- * @param <C>
+ * @param <T> Reference.
  */
 public class HLProtocol<T> extends AbstractProtocol<T> {
 

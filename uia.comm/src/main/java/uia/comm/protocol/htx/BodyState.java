@@ -24,7 +24,7 @@ import uia.comm.protocol.ProtocolEventArgs;
  *
  * @author Kyle K. Lin
  *
- * @param <C>
+ * @param <C> Reference.
  */
 public class BodyState<C> implements HTxState<C> {
 

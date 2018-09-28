@@ -22,7 +22,7 @@ package uia.comm.protocol.hl;
  *
  * @author Kyle K. Lin
  *
- * @param <C>
+ * @param <T> Reference.
  */
 public class IdleState<T> implements HLState<T> {
 

@@ -22,7 +22,7 @@ package uia.comm.protocol.ht;
  *
  * @author Kyle K. Lin
  *
- * @param <C>
+ * @param <C> Context.
  */
 public class HeadState<C> implements HTState<C> {
 

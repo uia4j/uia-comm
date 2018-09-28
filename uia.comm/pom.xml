@@ -1,11 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
- 	<groupId>uia</groupId>
- 	<artifactId>uia.comm</artifactId>
-	<version>0.2.3</version>
+ 	<groupId>org.uia.comm</groupId>
+ 	<artifactId>uia-comm</artifactId>
+	<version>0.3.0</version>
 	<packaging>jar</packaging>
-	<name>uia.comm</name>
+	<name>uia-comm</name>
 	<url>https://github.com/gazer2kanlin/uia.comm4j</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -30,9 +30,9 @@
 			<version>2.1.7</version>
 		</dependency>
 		<dependency>
-			<groupId>uia</groupId>
-			<artifactId>uia.utils</artifactId>
-			<version>0.1.2</version>
+			<groupId>org.uia.utils</groupId>
+			<artifactId>uia-utils</artifactId>
+			<version>0.2.0</version>
 		</dependency>
 	</dependencies>
     <repositories>
@@ -85,7 +85,6 @@
 					<check />
 				</configuration>
 			</plugin>
-			<!--
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
@@ -99,7 +98,19 @@
 					</execution>
 				</executions>
 			</plugin>
-			 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.0.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	<scm>
@@ -107,9 +118,9 @@
 		<url>https://github.com/gazer2kanlin/uia.comm4j</url>
 	</scm>
 	<distributionManagement>
-	    <repository>
-	        <id>bintray-my-maven</id>
-	        <url>https://api.bintray.com/maven/gazer2kanlin/maven/uia.comm4j/;publish=1</url>
-	    </repository>
+		<repository>
+			<id>bintray-my-maven</id>
+			<url>https://api.bintray.com/maven/gazer2kanlin/maven/uia-comm4j/;publish=1</url>
+		</repository>
 	</distributionManagement>
 </project>
