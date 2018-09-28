@@ -49,7 +49,6 @@ public class DatagramClient implements ProtocolEventHandler<DatagramDataControll
      * @param protocol The protocol on this socket channel.
      * @param manager Protocol manager.
      * @param aliasName Alias name.
-     * @param clientPort Client port.
      */
     public DatagramClient(final Protocol<DatagramDataController> protocol, final MessageManager manager, String aliasName) {
         this.aliasName = aliasName;

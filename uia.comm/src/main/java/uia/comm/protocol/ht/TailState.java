@@ -24,7 +24,7 @@ import uia.comm.protocol.ProtocolEventArgs;
  *
  * @author Kyle K. Lin
  *
- * @param <C>
+ * @param <C> Reference.
  */
 public class TailState<C> implements HTState<C> {
 

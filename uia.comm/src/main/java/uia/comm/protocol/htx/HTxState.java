@@ -22,7 +22,7 @@ package uia.comm.protocol.htx;
  *
  * @author Kyle K. Lin
  *
- * @param <C>
+ * @param <C> Reference.
  */
 public interface HTxState<C> {
 
