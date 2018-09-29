@@ -6,7 +6,7 @@
 	<version>0.3.0</version>
 	<packaging>jar</packaging>
 	<name>uia-comm</name>
-	<url>https://github.com/gazer2kanlin/uia.comm4j</url>
+	<url>https://github.com/uia4j/uia-comm</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.target>1.6</maven.compiler.target>
@@ -40,21 +40,11 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-            <id>central</id>
-            <name>bintray</name>
-            <url>http://jcenter.bintray.com</url>
+            <id>uia4j</id>
+            <name>bintray-uia4j</name>
+            <url>https://dl.bintray.com/uia4j/maven</url>
         </repository>
     </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>central</id>
-            <name>bintray-plugins</name>
-            <url>http://jcenter.bintray.com</url>
-        </pluginRepository>
-    </pluginRepositories>
 	<build>
 		<finalName>${project.artifactId}-${project.version}</finalName>
 		<plugins>
@@ -115,12 +105,12 @@
 	</build>
 	<scm>
 		<developerConnection>Kyle K. Lin</developerConnection>
-		<url>https://github.com/gazer2kanlin/uia.comm4j</url>
+		<url>https://github.com/uia4j/uia-comm</url>
 	</scm>
 	<distributionManagement>
 		<repository>
 			<id>bintray-my-maven</id>
-			<url>https://api.bintray.com/maven/gazer2kanlin/maven/uia-comm4j/;publish=1</url>
+			<url>https://api.bintray.com/maven/uia4j/maven/uia-comm/;publish=1</url>
 		</repository>
 	</distributionManagement>
 </project>
