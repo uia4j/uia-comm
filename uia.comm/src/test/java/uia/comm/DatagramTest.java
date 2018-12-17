@@ -2,7 +2,7 @@ package uia.comm;
 
 import org.junit.Test;
 
-import uia.comm.my.MyManager;
+import uia.comm.my.ClientManager;
 import uia.comm.protocol.ng.NGProtocol;
 
 public class DatagramTest {
@@ -12,14 +12,14 @@ public class DatagramTest {
         DatagramServer server = new DatagramServer(
                 new NGProtocol<DatagramDataController>(),
                 5678,
-                new MyManager(),
+                new ClientManager(),
                 "server");
 
         server.connect();
 
         DatagramClient client = new DatagramClient(
                 new NGProtocol<DatagramDataController>(),
-                new MyManager(),
+                new ClientManager(),
                 "client");
 
         client.connect("localhost", 5678);

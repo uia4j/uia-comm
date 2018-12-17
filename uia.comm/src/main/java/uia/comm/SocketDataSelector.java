@@ -38,7 +38,7 @@ public class SocketDataSelector {
 
     /**
      *
-     * @throws IOException Raise when open failure.
+     * @throws IOException Raise when open failed.
      */
     public SocketDataSelector() throws IOException {
         this.selector = Selector.open();
@@ -48,7 +48,7 @@ public class SocketDataSelector {
      * Register controller to specific channel.
      * @param ch Socket channel.
      * @param controller Socket data controller.
-     * @throws ClosedChannelException Raise when register channel failure.
+     * @throws ClosedChannelException Raise when register channel failed.
      */
     public void register(SocketChannel ch, SocketDataController controller) throws ClosedChannelException {
         ch.register(this.selector, SelectionKey.OP_READ, controller);

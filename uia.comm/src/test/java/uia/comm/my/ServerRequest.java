@@ -29,41 +29,63 @@ import uia.comm.SocketDataController;
  * @author Kyle K. Lin
  *
  */
-public class ToClientRequest implements MessageCallIn<SocketDataController>, MessageCallOut {
+public class ServerRequest implements MessageCallIn<SocketDataController>, MessageCallOut {
+	
+	private String name;
+	
+	private String message;
+	
+	private String tx;
+	
+	public ServerRequest(String name, int size) {
+		this.name = name;
+		StringBuilder body = new StringBuilder();
+		for(int i=0; i< size; i++) {
+			body.append("0");
+		}
+		this.message = body.append("_END").toString(); 
+	}
+	
+	public byte[] sampling(String tx) {
+		this.tx = tx;
+		return ("BEGIN_SVRREQ" + this.tx + this.message).getBytes();
+	}
 
-    @Override
+	@Override
     public String getCmdName() {
-        return "ABC";
+        return "SVRREQ";
     }
 
     @Override
     public String getTxId() {
-        return "1";
+        return this.tx;
     }
 
     @Override
     public void execute(byte[] request, SocketDataController controller) {
-        // DEF12
-        try {
-            Thread.sleep(150);
-            boolean r = controller.send(new byte[] { (byte) 0x8a, 0x44, 0x45, 0x46, 0x31, 0x32, (byte) 0xa8 }, 1);
-            Assert.assertTrue(r);
-        }
-        catch (InterruptedException e) {
-
-        }
+		try {
+	        String tx = new String(new byte[] { request[12] });
+			long t = System.currentTimeMillis() % 1500;
+			if(t > 495) {
+    			System.out.println(this.name + ", " + tx + "> sleep: " + t);
+			}
+			Thread.sleep(t);
+			
+			boolean r = controller.send(("BEGIN_SVRRSP" + tx + this.message).getBytes(), 1);
+	        Assert.assertTrue(r);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
 
     @Override
     public void execute(byte[] reply) {
-        Assert.assertArrayEquals(
-                new byte[] { (byte) 0x8a, 0x44, 0x45, 0x46, 0x31, 0x32, (byte) 0xa8 },
-                reply);
+    	System.out.println(this.name + ", " + this.tx + "> reply:   " + reply.length);
     }
 
     @Override
     public void timeout() {
-        Assert.assertTrue(false);
+    	System.out.println(this.name + ", " + this.tx + "> timeout");
     }
 
 }

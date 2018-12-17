@@ -29,34 +29,62 @@ import uia.comm.SocketDataController;
  * @author Kyle K. Lin
  *
  */
-public class ToServerRequest implements MessageCallOut, MessageCallIn<SocketDataController> {
+public class ClientRequest implements MessageCallIn<SocketDataController>, MessageCallOut {
+	
+	private String name;
+	
+	private String message;
+	
+	private String tx;
+	
+	public ClientRequest(String name, int size) {
+		this.name = name;
+		StringBuilder body = new StringBuilder();
+		for(int i=0; i< size; i++) {
+			body.append("0");
+		}
+		this.message = body.append("_END").toString(); 
+	}
+	
+	public byte[] sampling(String tx) {
+		this.tx = tx;
+		return ("BEGIN_CNTREQ" + this.tx + this.message).getBytes();
+	}
 
-    @Override
+	@Override
     public String getCmdName() {
-        return "ABC";
+        return "CNTREQ";
     }
 
     @Override
     public String getTxId() {
-        return "2";
+        return this.tx;
+    }
+
+    @Override
+    public void execute(byte[] request, SocketDataController controller) {
+		try {
+	        String tx = new String(new byte[] { request[12] });
+			long t = System.currentTimeMillis() % 1500;
+			if(t > 495) {
+    			System.out.println(this.name + ", " + tx + "> sleep: " + t);
+			}
+			Thread.sleep(t);
+			
+			controller.send(("BEGIN_CNTRSP" + tx + this.message).getBytes(), 1);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
 
     @Override
     public void execute(byte[] reply) {
-        Assert.assertArrayEquals(
-                new byte[] { (byte) 0x8a, 0x44, 0x45, 0x46, 0x32, 0x31, (byte) 0xa8 },
-                reply);
+    	System.out.println(this.name + ", " + this.tx + "> reply:   " + reply.length);
     }
 
     @Override
     public void timeout() {
-        Assert.assertTrue(false);
+    	System.out.println(this.name + ", " + this.tx + "> timeout");
     }
 
-    @Override
-    public synchronized void execute(byte[] request, SocketDataController controller) {
-        // DEF21
-        boolean r = controller.send(new byte[] { (byte) 0x8a, 0x44, 0x45, 0x46, 0x32, 0x31, (byte) 0xa8 }, 1);
-        Assert.assertTrue(r);
-    }
 }

@@ -100,6 +100,7 @@ public class SocketDataController implements DataController {
                 int cnt = this.ch.write(ByteBuffer.wrap(encoded));
                 if (cnt == encoded.length) {
                     logger.debug(String.format("%s> send %s", this.name, ByteUtils.toHexString(encoded, 100)));
+                    Thread.sleep(100);
                     return true;
                 }
                 else {

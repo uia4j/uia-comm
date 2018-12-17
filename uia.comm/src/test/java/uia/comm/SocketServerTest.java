@@ -23,8 +23,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import uia.comm.SocketServer.ConnectionStyle;
-import uia.comm.my.MyManager;
-import uia.comm.protocol.ng.NGProtocol;
+import uia.comm.my.ClientManager;
+import uia.comm.my.ServerManager;
+import uia.comm.my.ServerRequest;
+import uia.comm.protocol.ht.HTProtocol;
 
 /**
  *
@@ -32,6 +34,8 @@ import uia.comm.protocol.ng.NGProtocol;
  *
  */
 public class SocketServerTest {
+	
+	private int size = 100000;
 
     public SocketServerTest() {
         PropertyConfigurator.configure("log4j.properties");
@@ -39,31 +43,45 @@ public class SocketServerTest {
 
     @Test
     public void testOnlyOne() throws Exception {
-        SocketServer server = create("OnlyOne", 2234, ConnectionStyle.ONLYONE);
+        SocketServer server = create("OnlyOne", 2236, ConnectionStyle.ONLYONE);
         server.start();
 
         for (int i = 0; i < 4; i++) {
-            SocketClient client = new SocketClient(new NGProtocol<SocketDataController>(), new MyManager(), "oo-" + i);
-            Assert.assertTrue(client.connect("localhost", 2234));
-            Thread.sleep(4000);
+            SocketClient client = new SocketClient(
+                    new HTProtocol<SocketDataController>("BEGIN_".getBytes(), "_END".getBytes()),
+            		new ClientManager(), 
+            		"clnt" + i);
+            client.setMaxCache(2000000);
+            client.registerCallin(new ServerRequest(client.getName(), this.size));
+            client.connect("localhost", 2236);
+            Thread.sleep(1000);
             Assert.assertEquals(1, server.getClientCount());
+            Thread.sleep(5000);
         }
 
+        Thread.sleep(120000);
         server.stop();
     }
 
     @Test
     public void testOneEachClient() throws Exception {
-        SocketServer server = create("OneEachClient", 2235, ConnectionStyle.ONE_EACH_CLIENT);
+        SocketServer server = create("OneEachClient", 2236, ConnectionStyle.ONE_EACH_CLIENT);
         server.start();
 
         for (int i = 0; i < 4; i++) {
-            SocketClient client = new SocketClient(new NGProtocol<SocketDataController>(), new MyManager(), "oec-" + i);
-            Assert.assertTrue(client.connect("localhost", 2235));
-            Thread.sleep(4000);
+            SocketClient client = new SocketClient(
+                    new HTProtocol<SocketDataController>("BEGIN_".getBytes(), "_END".getBytes()),
+            		new ClientManager(), 
+            		"clnt" + i);
+            client.setMaxCache(2000000);
+            client.registerCallin(new ServerRequest(client.getName(), this.size));
+            client.connect("localhost", 2236);
+            Thread.sleep(1000);
             Assert.assertEquals(1, server.getClientCount());
+            Thread.sleep(5000);
         }
 
+        Thread.sleep(120000);
         server.stop();
     }
 
@@ -72,24 +90,40 @@ public class SocketServerTest {
         SocketServer server = create("Normal", 2236, ConnectionStyle.NORMAL);
         server.start();
 
-        for (int i = 0; i < 4; i++) {
-            SocketClient client = new SocketClient(new NGProtocol<SocketDataController>(), new MyManager(), "n-" + i);
-            Assert.assertTrue(client.connect("localhost", 2236));
-            Thread.sleep(4000);
+        for (int i = 0; i < 10; i++) {
+            SocketClient client = new SocketClient(
+                    new HTProtocol<SocketDataController>("BEGIN_".getBytes(), "_END".getBytes()),
+            		new ClientManager(), 
+            		"clnt" + i);
+            client.setMaxCache(2000000);
+            client.registerCallin(new ServerRequest(client.getName(), this.size));
+            client.connect("localhost", 2236);
             Assert.assertEquals(i + 1, server.getClientCount());
+            Thread.sleep(256);
         }
 
+        Thread.sleep(120000);
         server.stop();
     }
 
     @Test
     public void testIdle() throws Exception {
-        SocketServer server = create("Idle", 2238, ConnectionStyle.NORMAL);
+        final SocketServer server = new SocketServer(
+                new HTProtocol<SocketDataController>("BEGIN_".getBytes(), "_END".getBytes()),
+                2236,
+                new ServerManager(),
+                "Idle1500",
+                ConnectionStyle.NORMAL);
+        server.setMaxCache(2000000);
         server.setIdleTime(1500);
         server.start();
 
-        SocketClient client = new SocketClient(new NGProtocol<SocketDataController>(), new MyManager(), "clnt");
-        Assert.assertTrue(client.connect("localhost", 2238));
+        SocketClient client = new SocketClient(
+                new HTProtocol<SocketDataController>("BEGIN_".getBytes(), "_END".getBytes()),
+        		new ClientManager(), 
+        		"clnt");
+        Assert.assertTrue(client.connect("localhost", 2236));
+
         Thread.sleep(500);
         Assert.assertEquals(1, server.getClientCount());
         Thread.sleep(3500);
@@ -100,15 +134,28 @@ public class SocketServerTest {
 
     private SocketServer create(String name, int port, ConnectionStyle cs) throws Exception {
         final SocketServer server = new SocketServer(
-                new NGProtocol<SocketDataController>(),
+                new HTProtocol<SocketDataController>("BEGIN_".getBytes(), "_END".getBytes()),
                 port,
-                new MyManager(),
+                new ServerManager(),
                 name,
                 cs);
+        server.setMaxCache(2000000);
         server.addServerListener(new SocketServerListener() {
 
             @Override
             public void connected(SocketDataController controller) {
+            	ServerRequest req = new ServerRequest(controller.getName(), SocketServerTest.this.size);
+            	for(int i =0; i<100; i++) {
+            		String tx = "" + (i % 10);
+	            	try {
+	            		byte[] data = req.sampling(tx);
+	            		System.out.println(controller.getName() + ", " + tx + "> request: " + data.length);
+						server.send(controller.getName(), data, req, 500);
+		            	Thread.sleep(1000);
+					} catch (Exception e) {
+	            		System.out.println(controller.getName() + ", " + tx + "> broken");
+					}
+            	}
             }
 
             @Override

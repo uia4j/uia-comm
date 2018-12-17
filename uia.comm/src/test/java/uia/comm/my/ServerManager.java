@@ -27,22 +27,22 @@ import uia.comm.MessageManager;
  * @author Kyle K. Lin
  *
  */
-public class MyManager implements MessageManager {
+public class ServerManager implements MessageManager {
 
     @Override
     public boolean isCallIn(String cmd) {
-        return "ABC".equals(cmd);
+        return "CNTREQ".equals(cmd);
     }
 
     @Override
     public String findCmd(byte[] data) {
-        String cmd = new String(Arrays.copyOfRange(data, 1, 4));
+        String cmd = new String(Arrays.copyOfRange(data, 6, 12));
         return cmd;
     }
 
     @Override
     public String findTx(byte[] data) {
-        String tx = new String(Arrays.copyOfRange(data, 4, 5));
+        String tx = new String(Arrays.copyOfRange(data, 12, 13));
         return tx;
     }
 
