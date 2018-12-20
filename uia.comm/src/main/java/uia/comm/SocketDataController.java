@@ -24,6 +24,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.log4j.Logger;
@@ -149,6 +150,7 @@ public class SocketDataController implements DataController {
     }
 
     void lastUpdate() {
+        logger.info(this.name + "> lastUpdate: " + new Date());
         this.lastUpdate = System.currentTimeMillis();
     }
 

@@ -98,15 +98,15 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
      * @param clientPort Client port.
      */
     public SocketClient(final Protocol<SocketDataController> protocol, final MessageManager manager, String aliasName, int clientPort) {
-        this.clientPort = clientPort;
-        this.aliasName = aliasName;
         this.protocol = protocol;
         this.protocol.addMessageHandler(this);
         this.manager = manager;
         this.callIns = new HashMap<String, MessageCallIn<SocketDataController>>();
         this.callOuts = new ConcurrentHashMap<String, MessageCallOut>();
         this.started = false;
+        this.aliasName = aliasName;
         this.maxCache = 20 * 1024;  // 20K
+        this.clientPort = clientPort;
     }
 
     public int getMaxCache() {
@@ -115,11 +115,6 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
 
     public void setMaxCache(int maxCache) {
         this.maxCache = Math.max(16, maxCache);
-    }
-
-    @Override
-    public String getName() {
-        return this.aliasName;
     }
 
     /**
@@ -267,6 +262,11 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
     }
 
     @Override
+    public String getName() {
+        return this.aliasName;
+    }
+
+    @Override
     public Protocol<SocketDataController> getProtocol() {
         return this.protocol;
     }
@@ -318,10 +318,10 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             return this.controller.send(data, times);
         }
         catch (Exception ex) {
-            logger.error(String.format("%s> send %s failed. ex:%s",
+            logger.error(String.format("%s> send %s failed",
                     this.aliasName,
-                    ByteUtils.toHexString(data, 100),
-                    ex.getMessage()));
+                    ByteUtils.toHexString(data, 100)),
+                    ex);
             return false;
         }
     }
@@ -369,7 +369,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
     }
 
     @Override
-    public boolean send(final byte[] data, MessageCallOut callOut, long timeout, int retry) throws SocketException {
+    public boolean send(final byte[] data, final MessageCallOut callOut, long timeout, int retry) throws SocketException {
         if (!this.started) {
             throw new SocketException(this.aliasName + "> is not started.");
         }

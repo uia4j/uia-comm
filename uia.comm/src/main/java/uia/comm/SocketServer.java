@@ -112,7 +112,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
         this.controllers = new ConcurrentHashMap<String, SocketDataController>();
         this.listeners = new ArrayList<SocketServerListener>();
 
-        this.idleTime = 60000;
+        this.idleTime = 300000;
         this.port = port;
         this.maxCache = 20 * 1024;  // 20K
     }
@@ -316,7 +316,10 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
                 	MessageCallOut out = callOutsRef.remove(tx);
                     if (out != null) {
                         try {
-	                        logger.info(String.format("%s> tx:%s callOut timeout", clientName, out.getTxId()));
+	                        logger.info(String.format("%s> %s> tx:%s callOut timeout", 
+	                        		SocketServer.this.aliasName, 
+	                        		clientName, 
+	                        		out.getTxId()));
 	                        out.timeout();
                         }
                         catch(Exception ex) {
@@ -406,7 +409,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
         this.clientCallouts.remove(clientName);
 
         if (controller != null) {
-            logger.info(String.format("%s> %s disconnected, count:%s", this.aliasName, clientName, this.controllers.size()));
+            logger.info(String.format("%s> %s> disconnected, count:%s", this.aliasName, clientName, this.controllers.size()));
             SelectionKey key = controller.getChannel().keyFor(this.serverSelector);
             if (key != null) {
                 key.cancel();
@@ -583,6 +586,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
     private void polling() {
         if (this.started) {
+            logger.info(this.aliasName + "> polling");
             ArrayList<String> keys = new ArrayList<String>();
             Collection<SocketDataController> controllers = this.controllers.values();
             synchronized (this.controllers) {
@@ -594,6 +598,9 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
             }
 
             for (String key : keys) {
+                logger.info(String.format("%s> %s> try to disconnect(polling)",
+                		this.aliasName,
+                		key));
                 disconnect(key);
             }
         }
@@ -608,7 +615,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
                 this.serverSelector.select(); // wait NIO event.
             }
             catch (Exception ex) {
-                logger.error("comm> ", ex);
+                logger.error(this.aliasName + "> NIO failed", ex);
                 continue;
             }
 
@@ -631,6 +638,9 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
                     else if (key.isReadable()) {
                         SocketDataController controller = (SocketDataController) key.attachment();
                         if (!controller.receive()) {
+                            logger.info(String.format("%s> %s> try to disconnect(running)",
+                                    this.aliasName,
+                                    key));
                             disconnect(controller.getName());
                         }
                     }
@@ -678,7 +688,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
             // use server selector
             client.register(this.serverSelector, SelectionKey.OP_READ, controller);
 
-            logger.info(String.format("%s> %s connected, count:%s", this.aliasName, clientId, this.controllers.size()));
+            logger.info(String.format("%s> %s> connected, count:%s", this.aliasName, clientId, this.controllers.size()));
 
             new Thread(new Runnable() {
 
