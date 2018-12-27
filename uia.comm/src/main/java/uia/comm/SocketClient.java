@@ -337,7 +337,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
             throw new SocketException(this.aliasName + "> is not started.");
         }
 
-        MessageCallOutConcurrent callout = new MessageCallOutConcurrent(txId, timeout);
+        MessageCallOutConcurrent callout = new MessageCallOutConcurrent(getName(), txId, timeout);
         ExecutorService threadPool = Executors.newSingleThreadExecutor();
 
         try {

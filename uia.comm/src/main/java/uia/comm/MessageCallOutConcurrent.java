@@ -20,12 +20,18 @@ package uia.comm;
 
 import java.util.concurrent.Callable;
 
+import org.apache.log4j.Logger;
+
 /**
  *
  * @author Kyle K. Lin
  *
  */
 class MessageCallOutConcurrent implements MessageCallOut, Callable<byte[]> {
+
+    private final static Logger logger = Logger.getLogger(MessageCallOutConcurrent.class);
+    
+    private final String name;
 
     private final String txId;
 
@@ -38,6 +44,11 @@ class MessageCallOutConcurrent implements MessageCallOut, Callable<byte[]> {
     private final Object key = new Object();
 
     MessageCallOutConcurrent(String txId, long timeout) {
+    	this("comm", txId, timeout);
+    }
+
+    MessageCallOutConcurrent(String name, String txId, long timeout) {
+    	this.name = name;
         this.txId = txId;
         this.timeout = timeout;
         this.state = 0;
@@ -46,13 +57,14 @@ class MessageCallOutConcurrent implements MessageCallOut, Callable<byte[]> {
     @Override
     public byte[] call() throws Exception {
         synchronized (this.key) {
-            if (this.state != 0) {
-                return this.result;
-            }
+	        if (this.state != 0) {
+	            return this.result;
+	        }
 
             this.key.wait(this.timeout + 100);
             if (this.state == 0) {
                 this.state = -1;
+                this.result = null;
             }
         }
         return this.result;
@@ -66,6 +78,7 @@ class MessageCallOutConcurrent implements MessageCallOut, Callable<byte[]> {
     @Override
     public void execute(byte[] reply) {
         synchronized (this.key) {
+        	logger.debug(this.name + "> tx:" + txId + ", callOut reply check:" + this.state);
             if (this.state == 0) {
                 this.state = 1;
                 this.result = reply;
@@ -77,8 +90,10 @@ class MessageCallOutConcurrent implements MessageCallOut, Callable<byte[]> {
     @Override
     public void timeout() {
         synchronized (this.key) {
+        	logger.debug(this.name + "> tx:" + txId + ", callOut timeout check:" + this.state);
             if (this.state == 0) {
                 this.state = -1;
+                this.result = null;
             }
             this.key.notifyAll();
         }

@@ -48,6 +48,7 @@ public class ServerManager implements MessageManager {
 
     @Override
     public byte[] decode(byte[] data) {
+    	System.out.println("server decode");
         return data;
     }
 

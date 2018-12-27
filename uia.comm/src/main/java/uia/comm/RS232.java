@@ -204,7 +204,7 @@ public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {
             throw new SocketException(this.aliasName + "> is not started.");
         }
 
-        MessageCallOutConcurrent callout = new MessageCallOutConcurrent(txId, timeout);
+        MessageCallOutConcurrent callout = new MessageCallOutConcurrent(getName(), txId, timeout);
         ExecutorService threadPool = Executors.newSingleThreadExecutor();
 
         synchronized (this.callOuts) {

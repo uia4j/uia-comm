@@ -104,6 +104,7 @@ public class SocketServerTest {
 
         Thread.sleep(120000);
         server.stop();
+        Thread.sleep(2000);
     }
 
     @Test
@@ -145,7 +146,7 @@ public class SocketServerTest {
             @Override
             public void connected(SocketDataController controller) {
             	ServerRequest req = new ServerRequest(controller.getName(), SocketServerTest.this.size);
-            	for(int i =0; i<100; i++) {
+            	for(int i =0; i<20; i++) {
             		String tx = "" + (i % 10);
 	            	try {
 	            		byte[] data = req.sampling(tx);

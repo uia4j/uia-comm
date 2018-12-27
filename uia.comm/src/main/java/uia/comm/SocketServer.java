@@ -240,7 +240,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
             throw new SocketException(clientName + "> missing");
         }
 
-        MessageCallOutConcurrent callout = new MessageCallOutConcurrent(txId, timeout);
+        MessageCallOutConcurrent callout = new MessageCallOutConcurrent(clientName, txId, timeout);
         ExecutorService threadPool = Executors.newSingleThreadExecutor();
 
         ConcurrentHashMap<String, MessageCallOut> callOuts = null;
@@ -255,7 +255,6 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
         try {
             if (controller.send(data, 1)) {
-                logger.debug(String.format("%s> %s> send %s", this.aliasName, clientName, ByteUtils.toHexString(data, 100)));
                 try {
                     Future<byte[]> future = threadPool.submit(callout);
                     return future.get();
@@ -266,9 +265,14 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
                 }
             }
             else {
-                logger.debug(String.format("%s> %s> send %s failed", this.aliasName, clientName, ByteUtils.toHexString(data, 100)));
+                logger.error(String.format("%s> %s> send failed, %s", this.aliasName, clientName, ByteUtils.toHexString(data)));
                 throw new SocketException(String.format("%s> %s> send failed", this.aliasName, clientName));
             }
+        }
+        catch(SocketException ex) {
+            logger.error(String.format("%s> %s> send failed", this.aliasName, clientName), ex);
+           	disconnect(controller.getName());
+        	throw ex;
         }
         finally {
             callOuts.remove(txId);
@@ -313,12 +317,17 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
                 @Override
                 public void run() {
+                    logger.debug(String.format("%s> %s> tx:%s callOut timer is running", 
+                    		SocketServer.this.aliasName, 
+                    		tx,
+                    		clientName));
                 	MessageCallOut out = callOutsRef.remove(tx);
                     if (out != null) {
                         try {
 	                        logger.info(String.format("%s> %s> tx:%s callOut timeout", 
 	                        		SocketServer.this.aliasName, 
 	                        		clientName, 
+	                        		tx,
 	                        		out.getTxId()));
 	                        out.timeout();
                         }
@@ -353,6 +362,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
         if (this.started) {
             return true;
         }
+        logger.info(String.format("%s> is starting", this.aliasName));
 
         this.controllers.clear();
         this.clientCallouts.clear();
@@ -409,6 +419,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
         this.clientCallouts.remove(clientName);
 
         if (controller != null) {
+            logger.info(String.format("%s> %s disconnected", this.aliasName, controller.getChannelName()));
             logger.info(String.format("%s> %s> disconnected, count:%s", this.aliasName, clientName, this.controllers.size()));
             SelectionKey key = controller.getChannel().keyFor(this.serverSelector);
             if (key != null) {
@@ -430,37 +441,41 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
      * Stop this server.
      *
      */
-    public void stop() {
-        if (!this.started) {
-            return;
-        }
-
-        this.started = false;
-        this.polling.cancel();
-
+    public synchronized void stop() {
+    	if (this.started) {
+	        this.started = false;
+    	}
+    	if(this.polling != null) {
+            this.polling.cancel();
+    	}
         try {
             this.serverSelector.wakeup();
             for (SocketDataController controller : this.controllers.values()) {
-                controller.stop();
-
-                SocketChannel ch = controller.getChannel();
-                if (ch != null) {
-                    SelectionKey key = ch.keyFor(this.serverSelector);
-                    if (key != null) {
-                        key.cancel();
-                    }
-                }
-                raiseDisconnected(controller);
+            	try {
+	                controller.stop();
+	                SocketChannel ch = controller.getChannel();
+	                if (ch != null) {
+	                    SelectionKey key = ch.keyFor(this.serverSelector);
+	                    if (key != null) {
+	                        key.cancel();
+	                    }
+	                }
+	                raiseDisconnected(controller);
+            	}
+            	catch(Exception ex) {
+            		
+            	}
             }
-            Thread.sleep(1000);
+            Thread.sleep(750);
         }
         catch (Exception ex) {
-            ex.printStackTrace();
 
         }
         finally {
+            logger.info(String.format("%s> stop", this.aliasName));
             this.controllers.clear();
             this.clientCallouts.clear();
+            this.listeners.clear();
             try {
                 this.serverSelector.close();
                 this.ch.socket().close();
@@ -473,8 +488,8 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
             this.polling = null;
             this.ch = null;
             this.serverSelector = null;
-            System.gc();
         }
+        System.gc();
     }
 
     @Override
@@ -526,7 +541,12 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
                 @Override
                 public void run() {
-                    callIn.execute(received, monitor.getController());
+                	try {
+                        callIn.execute(received, monitor.getController());
+                	}
+                	catch(Exception ex) {
+                		
+                	}
                 }
 
             }).start();
@@ -534,16 +554,23 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
         else {
         	ConcurrentHashMap<String, MessageCallOut> callOuts = this.clientCallouts.get(monitor.getController().getName());
             if (callOuts == null) {
-                logger.debug(String.format("%s> %s> not found",
+                logger.error(String.format("%s> %s> callout mapping not found",
                         this.aliasName,
                         monitor.getController().getName()));
                 return;
             }
 
             String tx = this.manager.findTx(received);
+            logger.debug(String.format("%s> %s> %s cmd:%s tx:%s callOut",
+                    this.aliasName,
+                    monitor.getController().getName(),
+                    monitor.getProtocol().getAliasName(),
+                    cmd,
+                    tx));
+
             final MessageCallOut callOut = callOuts.remove(tx);
             if (callOut == null) {
-                logger.debug(String.format("%s> %s> %s cmd:%s tx:%s callOut reply missing",
+                logger.debug(String.format("%s> %s> %s cmd:%s tx:%s callOut reply not found. maybe TIMEOUT.",
                         this.aliasName,
                         monitor.getController().getName(),
                         monitor.getProtocol().getAliasName(),
@@ -552,17 +579,16 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
                 return;
             }
 
-            logger.debug(String.format("%s> %s> %s cmd:%s tx:%s callOut reply",
-                    this.aliasName,
-                    monitor.getController().getName(),
-                    monitor.getProtocol().getAliasName(),
-                    cmd,
-                    tx));
             new Thread(new Runnable() {
 
                 @Override
                 public void run() {
-                    callOut.execute(received);
+                	try {
+                		callOut.execute(received);
+                	}
+                	catch(Exception ex) {
+                		
+                	}
                 }
 
             }).start();
@@ -638,7 +664,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
                     else if (key.isReadable()) {
                         SocketDataController controller = (SocketDataController) key.attachment();
                         if (!controller.receive()) {
-                            logger.info(String.format("%s> %s> try to disconnect(running)",
+                            logger.debug(String.format("%s> %s> try to disconnect(running)",
                                     this.aliasName,
                                     key));
                             disconnect(controller.getName());
@@ -655,14 +681,11 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
     private void clientConnected(SocketChannel client) {
         try {
             client.configureBlocking(false);
-            String clientId = "";
+            logger.info(String.format("%s> %s established", this.aliasName, client));
+
+            String clientId = client.socket().getRemoteSocketAddress().toString();
             if (this.connectionStyle == ConnectionStyle.ONE_EACH_CLIENT) {
                 clientId = client.socket().getInetAddress().getHostAddress();
-
-            }
-            else {
-                clientId = client.socket().getRemoteSocketAddress().toString();
-
             }
             disconnect(clientId);
 

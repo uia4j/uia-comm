@@ -44,6 +44,8 @@ public class SocketDataController implements DataController {
     private final ProtocolMonitor<SocketDataController> monitor;
 
     private final String name;;
+    
+    private final String channelName;
 
     private boolean started;
 
@@ -67,6 +69,7 @@ public class SocketDataController implements DataController {
      */
     SocketDataController(String name, SocketChannel ch, MessageManager mgr, ProtocolMonitor<SocketDataController> monitor) throws IOException {
         this.name = name;
+        this.channelName = ch.toString();
         this.started = false;
         this.ch = ch;
         this.ch.configureBlocking(false);
@@ -84,6 +87,10 @@ public class SocketDataController implements DataController {
     public void setMaxCache(int maxCache) {
         this.maxCache = Math.min(2000000, Math.max(16, maxCache));  // 2M
     }
+    
+    public String getChannelName() {
+    	return this.channelName;
+    }
 
     @Override
     public String getName() {
@@ -100,7 +107,7 @@ public class SocketDataController implements DataController {
                 this.ch.socket().setSendBufferSize(encoded.length);
                 int cnt = this.ch.write(ByteBuffer.wrap(encoded));
                 if (cnt == encoded.length) {
-                    logger.debug(String.format("%s> send %s", this.name, ByteUtils.toHexString(encoded, 100)));
+                    logger.debug(String.format("%s> send %s", this.name, ByteUtils.toHexString(encoded, 200)));
                     Thread.sleep(100);
                     return true;
                 }
@@ -185,6 +192,7 @@ public class SocketDataController implements DataController {
      */
     synchronized boolean receive() throws IOException {
         if (this.ch == null) {
+            logger.debug(this.name + "> no channel");
             return false;
         }
 
@@ -193,10 +201,12 @@ public class SocketDataController implements DataController {
         do {
             len = this.ch.read(buffer);
             if (len > 0) {
+                logger.debug(this.name + "> is receiving: " + len);
                 byte[] value = (byte[]) buffer.flip().array();
                 value = Arrays.copyOf(value, len);
                 for (byte b : value) {
                     if (this.monitor.getDataLength() > this.maxCache) {
+                        logger.fatal(this.name + "> out of maxCchte:" + this.maxCache);
                         this.monitor.reset();
                     }
                     this.monitor.read(b);
@@ -234,8 +244,9 @@ public class SocketDataController implements DataController {
                     try {
                         receive();
                     }
-                    catch (IOException e) {
-
+                    catch (Exception e) {
+                    	logger.fatal(socketChannel, e);
+                    	break;
                     }
                 }
             }
