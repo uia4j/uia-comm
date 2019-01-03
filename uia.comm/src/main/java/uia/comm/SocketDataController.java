@@ -237,7 +237,6 @@ public class SocketDataController implements DataController {
                 Iterator<SelectionKey> iterator = this.selector.selectedKeys().iterator();
                 while (iterator.hasNext()) {
                     SelectionKey selectionKey = iterator.next();
-                    @SuppressWarnings("unused")
                     SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
                     iterator.remove();
 
