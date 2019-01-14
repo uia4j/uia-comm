@@ -650,18 +650,21 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
             }
 
+            // 1. find out channels ready to work
             Iterator<SelectionKey> iter = this.serverSelector.selectedKeys().iterator();
             while (iter.hasNext()) {
                 SelectionKey key = iter.next();
                 iter.remove();
 
                 try {
+                	// 1. ready to accept a new connection
                     if (key.isAcceptable()) {
                         ServerSocketChannel client = (ServerSocketChannel) key.channel();
                         SocketChannel ch = client.accept();
                         clientConnected(ch);
                     }
-                    else if (key.isReadable()) {
+                    // 2. ready to read data
+                    if (key.isReadable()) {
                         SocketDataController controller = (SocketDataController) key.attachment();
                         if (!controller.receive()) {
                             logger.debug(String.format("%s> %s> try to disconnect(running)",
