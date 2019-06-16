@@ -23,11 +23,9 @@ Socket client, server & RS232 library.
 
 ### Protocol
 Provide interfaces to define data structure and handle incoming data.
-* uia.comm.protocol.Protocol
-    define data structure
+* uia.comm.protocol.Protocol - define data structure
 
-* uia.comm.protocol.ProtocolMonitor
-    handle incoming data.
+* uia.comm.protocol.ProtocolMonitor - handle incoming data.
 
 ### Default Implementation
 * HLProtocol - Head-Length
@@ -84,12 +82,12 @@ Provide core functions for control flow of messages.
 ### Call In/Out
 Provoide interfaces to handle incoming and outgoing messages.
 * uia.comm.MessageCallIn
-    Handle __Request__ from remote side.
-    __Response__ from the remote side will be paired to __Callout Request__.
+    * Handle __Request__ from remote side.
+    * __Response__ from the remote side will be paired to __Callout Request__.
 
 * uia.comm.MessageCallout
-    Handle __Reqeust__ form client side.
-    __Response__ of the Request will be paired automatically.
+    * Handle __Reqeust__ form client side.
+    * __Response__ of the Request will be paired automatically.
 
 ## Maven
 ```xml

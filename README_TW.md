@@ -21,11 +21,9 @@ Socket client, server & RS232 library.
 
 ### Protocol
 Provide 介面用於定義資料結構與追縱收到的資料。
-* uia.comm.protocol.Protocol
-    定義資料結構
+* uia.comm.protocol.Protocol - 定義資料結構
 
-* uia.comm.protocol.ProtocolMonitor
-    追蹤收到的資料
+* uia.comm.protocol.ProtocolMonitor - 追蹤收到的資料
 
 ### 預設實作
 * HLProtocol - Head-Length
@@ -35,7 +33,7 @@ Provide 介面用於定義資料結構與追縱收到的資料。
         int lenEndOffset,   // 主資料尾字元與完整資料尾字元的偏移量。
         int lenFieldIdx,    // 長度欄位開始位元位置。
         int lenFieldCount,  // 長度欄位位元數。
-        LenReader reader,   // 長度欄位讀取介面
+        LenReader reader,   // 長度欄位讀取介面。
         byte[] head)        // 完整資料開始的位元組值。
     ```
 * HOProtocol - Head Only
@@ -82,12 +80,12 @@ Provide 介面用於定義資料結構與追縱收到的資料。
 ### Call In/Out
 提供介面處理資料進出。
 * uia.comm.MessageCallIn
-    處理來自遠端的 __請求(Request)__。
-    來自遠端的 __回應(Response)__ 會被配對到 __近端發出的請求(Request)__。
+    * 處理來自遠端的 __請求(Request)__。
+    * 來自遠端的 __回應(Response)__ 會被配對到 __近端發出的請求(Request)__。
 
 * uia.comm.MessageCallout
-    處理近端發出的 __請求(Reqeust)__。
-    請求(Request) 對應的 __回應(Response)__ 會自動被配對上。
+    * 處理近端發出的 __請求(Reqeust)__。
+    * 請求(Request) 對應的 __回應(Response)__ 會自動被配對上。
 
 
 ## Maven
