@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
  	<groupId>org.uia.solution</groupId>
  	<artifactId>uia-comm</artifactId>
-	<version>0.3.3</version>
+	<version>0.3.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>uia-comm</name>
 	<url>https://github.com/uia4j/uia-comm</url>

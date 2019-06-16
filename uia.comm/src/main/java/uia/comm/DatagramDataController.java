@@ -77,7 +77,7 @@ public class DatagramDataController implements DataController {
         this.monitor.setController(this);
         this.lastUpdate = System.currentTimeMillis();
         this.started = false;
-        this.maxCache = 10 * 1000;  // 10K
+        this.maxCache = 8 * 1024;  // 8K
     }
 
     public int getMaxCache() {
@@ -195,12 +195,11 @@ public class DatagramDataController implements DataController {
             return false;
         }
 
-        ByteBuffer buffer = ByteBuffer.allocate(1024*16);
+        ByteBuffer buffer = ByteBuffer.allocate(this.maxCache * 2);
         this.ch.receive(buffer);
         int len = buffer.position();
         while (len > 0) {
             logger.debug(this.name + "> is receiving: " + len);
-            System.out.println(this.name + "> is receiving: " + len);
             byte[] value = (byte[]) buffer.flip().array();
             value = Arrays.copyOf(value, len);
             for (byte b : value) {
