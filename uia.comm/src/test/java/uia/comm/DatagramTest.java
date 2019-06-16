@@ -2,39 +2,72 @@ package uia.comm;
 
 import org.junit.Test;
 
-import uia.comm.my.ClientManager;
-import uia.comm.protocol.ng.NGProtocol;
+import uia.comm.protocol.ht.HTProtocol;
+import uia.utils.ByteUtils;
+import uia.utils.HexStringUtils;
 
-public class DatagramTest {
+public class DatagramTest implements MessageManager {
 
     @Test
-    public void test() throws Exception {
-        DatagramServer server = new DatagramServer(
-                new NGProtocol<DatagramDataController>(),
-                5678,
-                new ClientManager(),
-                "server");
-
-        server.connect();
-
+    public void testClient() throws Exception {
+        byte[] data = HexStringUtils.toBytes("41-42-00-00-00-41-42-43-30-31-32-33-34-35-36-37-38-39-99-99-99", "-");
         DatagramClient client = new DatagramClient(
-                new NGProtocol<DatagramDataController>(),
-                new ClientManager(),
+                new HTProtocol<DatagramDataController>(
+                		new byte[] { 0x00, 0x00, 0x00 }, 
+                		new byte[] { (byte)0x99, (byte)0x99, (byte)0x99 }),
+                this,
                 "client");
+        client.connect(10002, "KYLE-N550");
+        client.registerCallin(new MessageCallIn<DatagramDataController>() {
 
-        client.connect("localhost", 5678);
-        Thread.sleep(2000);
-        client.send("12345".getBytes());
-        Thread.sleep(2000);
-        client.send("ABCDE".getBytes());
-        Thread.sleep(2000);
-        client.send("1234567890abcdefg".getBytes());
-        Thread.sleep(2000);
-        client.disconnect();
+			@Override
+			public String getCmdName() {
+				return "ABC";
+			}
+
+			@Override
+			public void execute(byte[] request,	DatagramDataController controller) {
+				System.out.println(new String(ByteUtils.copy(request, 3, 13)));
+				
+			}
+        	
+        });
+        Thread.sleep(1000);
+        client.send(data);  
+        Thread.sleep(50);
+        client.send(data);  
+        client.send(data);  
+        Thread.sleep(1000);
         System.out.println("client closed");
-
-        Thread.sleep(2000);
-        server.disconnect();
-        System.out.println("server closed");
     }
+
+	@Override
+	public boolean isCallIn(String cmd) {
+		return "ABC".equalsIgnoreCase(cmd);
+	}
+
+	@Override
+	public String findCmd(byte[] data) {
+		return new String(new byte[] { data[3], data[4], data[5] });
+	}
+
+	@Override
+	public String findTx(byte[] data) {
+		return "1";
+	}
+
+	@Override
+	public byte[] decode(byte[] data) {
+		return data;
+	}
+
+	@Override
+	public byte[] encode(byte[] data) {
+		return data;
+	}
+
+	@Override
+	public boolean validate(byte[] data) {
+		return true;
+	}
 }

@@ -1,6 +1,5 @@
 package uia.comm;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.nio.channels.DatagramChannel;
@@ -100,11 +99,27 @@ public class DatagramClient implements ProtocolEventHandler<DatagramDataControll
     /**
      * Connect to specific socket server.
      *
-     * @param address Address.
      * @param port Port no.
      * @return True if connect success or connected already.
      */
-    public synchronized boolean connect(String address, int port) {
+    public synchronized boolean connect(int port) {
+        disconnect();
+
+        this.addr = null;
+        this.port = port;
+        this.started = false;
+
+        return tryConnect();
+    }
+
+    /**
+     * Connect to specific socket server.
+     *
+     * @param port Port no.
+     * @param address Address.
+     * @return True if connect success or connected already.
+     */
+    public synchronized boolean connect(int port, String address) {
         disconnect();
 
         this.addr = address;
@@ -127,22 +142,21 @@ public class DatagramClient implements ProtocolEventHandler<DatagramDataControll
      * @return Connected or not.
      */
     public synchronized boolean tryConnect() {
-        if (this.addr == null) {
-            this.started = false;
-            return false;
-        }
-
         if (this.started) {
             return true;
         }
 
         try {
+        	InetSocketAddress isa = this.addr == null ?
+        			new InetSocketAddress(this.port) :
+        			new InetSocketAddress(this.addr, this.port);
             this.ch = DatagramChannel.open();
-            this.ch.connect(new InetSocketAddress(InetAddress.getByName(this.addr), this.port));
-
+            this.ch.configureBlocking(false);
+            this.ch.socket().bind(isa);
             this.controller = new DatagramDataController(
                     this.aliasName,
                     this.ch,
+                    isa,
                     this.manager,
                     this.protocol.createMonitor(this.aliasName));
 
@@ -151,6 +165,7 @@ public class DatagramClient implements ProtocolEventHandler<DatagramDataControll
                     this.addr,
                     this.port));
 
+            this.controller.start();
             this.started = true;
             return true;
         }
