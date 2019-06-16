@@ -9,87 +9,86 @@ UIA Comm
 
 Socket client, server & RS232 library.
 
-[README Chinese](README_TW.md)
+## Android 支援
 
-## Android Support
+* SocketClient - 已測試
 
-* SocketClient - tested
+* SocketServer - 進行中
 
-* SocketServer - working
+* RS232 - __不支援__
 
-* RS232 - __NOT SUPPORT__
-
-## Key Abstraction
+## 關鍵資訊
 
 ### Protocol
-Provide interfaces to define data structure and handle incoming data.
+Provide 介面用於定義資料結構與追縱收到的資料。
 * uia.comm.protocol.Protocol
-    define data structure
+    定義資料結構
 
 * uia.comm.protocol.ProtocolMonitor
-    handle incoming data.
+    追蹤收到的資料
 
-### Default Implementation
+### 預設實作
 * HLProtocol - Head-Length
     ```java
     public HLProtocol(
-        int lenStartOffset, // The offset of first byte of primary data from first byte of full data.
-        int lenEndOffset,   // The offset of last byte of primary data from last byte of full data
-        int lenFieldIdx,    // First byte index of LENGTH field.
-        int lenFieldCount,  // Byte count of LENGTH field.
-        LenReader reader,   // Reader of LENGTH field.
-        byte[] head)        // Starting value of full data.
+        int lenStartOffset, // 主資料首字元與完整資料首字元的偏移量。
+        int lenEndOffset,   // 主資料尾字元與完整資料尾字元的偏移量。
+        int lenFieldIdx,    // 長度欄位開始位元位置。
+        int lenFieldCount,  // 長度欄位位元數。
+        LenReader reader,   // 長度欄位讀取介面
+        byte[] head)        // 完整資料開始的位元組值。
     ```
 * HOProtocol - Head Only
     ```java
     public HOProtocol(
-        byte[] head,        // Starting value of full data.
-        int maxLength) {    // Max. length.
+        byte[] head,        // 完整資料開始的位元組值。
+        int maxLength) {    // 完整資料最常長度。
     }
     ```
 * HTProtocol - Head-Tail
     ```java
     public HTProtocol(
-        byte[] head,        // Starting value of full data.
-        byte[] tail) {      // End value of full data.
+        byte[] head,        // 完整資料開始的位元組值。
+        byte[] tail) {      // 完整資料結束的位元組值。
     }
     ```
 
 * HTxProtocol - Head-Tail sepcial
     ```java
     public HTxProtocol(
-        byte head,          // Starting value of full data.
-        int hc,             // Repeat count of head.
-        byte tail) {        // End byte value of full data.
+        byte head,          // 完整資料開始的位元值。
+        int hc,             // 開始的位元值重複次數。
+        byte tail) {        // 完整資料結束的位元值。
     }
     ```
 
 * NGProtocol - Not Good
     ```java
     public NGProtocol() {
-    }                       // Structrueless.
+    }                       // 無結構描述。
     ```
 
 * XMLProtocol - XML
     ```java
     public XMLProtocol(     
-        String rootTag) {   // XML root tag.
+        String rootTag) {   // XML 根標籤。
     }
     ```
 
 ### Message Manager
-Provide core functions for control flow of messages.
+提供方法進行控制資料處理流程。
 * uia.comm.MessageManager
 
 ### Call In/Out
-Provoide interfaces to handle incoming and outgoing messages.
+提供介面處理資料進出。
 * uia.comm.MessageCallIn
-    Handle __Request__ from remote side.
-    __Response__ from the remote side will be paired to __Callout Request__.
+    處理來自遠端的 __請求(Request)__。
+    來自遠端的 __回應(Response)__ 會被配對到 __近端發出的請求(Request)__。
 
 * uia.comm.MessageCallout
-    Handle __Reqeust__ form client side.
-    __Response__ of the Request will be paired automatically.
+    處理近端發出的 __請求(Reqeust)__。
+    請求(Request) 對應的 __回應(Response)__ 會自動被配對上。
+
 
 ## Maven
 ```xml
@@ -99,11 +98,11 @@ Provoide interfaces to handle incoming and outgoing messages.
     <version>0.3.3</version>
 </dependency>
 ```
-### Dependency Libraries
+### 相依套件
 
 * [uia-utils](https://github.com/uia4j/uia-utils) - UIA common utilities
 
-## Copyright and License
+## 版權與授權
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
