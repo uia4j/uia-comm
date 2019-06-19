@@ -17,7 +17,7 @@ public class DatagramTest implements MessageManager {
                 		new byte[] { (byte)0x99, (byte)0x99, (byte)0x99 }),
                 this,
                 "client");
-        client.connect(10002);
+        client.connect("192.168.9.123", 10002, 10002);
         client.registerCallin(new MessageCallIn<DatagramDataController>() {
 
 			@Override
@@ -27,7 +27,7 @@ public class DatagramTest implements MessageManager {
 
 			@Override
 			public void execute(byte[] request,	DatagramDataController controller) {
-				System.out.println(new String(ByteUtils.copy(request, 3, 13)));
+				System.out.println("rcv:" + new String(ByteUtils.copy(request, 3, 13)));
 				
 			}
         	

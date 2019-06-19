@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
  	<groupId>org.uia.solution</groupId>
  	<artifactId>uia-comm</artifactId>
-	<version>0.3.4-SNAPSHOT</version>
+	<version>0.4.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>uia-comm</name>
 	<url>https://github.com/uia4j/uia-comm</url>
@@ -103,14 +103,16 @@
 			</plugin>
 		</plugins>
 	</build>
-	<scm>
-		<developerConnection>Kyle K. Lin</developerConnection>
-		<url>https://github.com/uia4j/uia-comm</url>
-	</scm>
 	<distributionManagement>
 		<repository>
 			<id>bintray-my-maven</id>
 			<url>https://api.bintray.com/maven/uia4j/maven/uia-comm/;publish=1</url>
 		</repository>
 	</distributionManagement>
+	<issueManagement>
+		<url>https://github.com/uia4j/uia-comm/issues</url>
+	</issueManagement>
+	<organization>
+		<url>https://github.com/uia4j</url>
+	</organization>
 </project>

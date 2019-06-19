@@ -44,12 +44,12 @@ public class DatagramDataController implements DataController {
     private final ProtocolMonitor<DatagramDataController> monitor;
 
     private final String name;;
+    
+    private final int broadcastPort;
 
     private MessageManager mgr;
 
     private DatagramChannel ch;
-    
-    private InetSocketAddress isa;
 
     private long lastUpdate;
 
@@ -67,10 +67,10 @@ public class DatagramDataController implements DataController {
      * @param idlePeriod
      * @throws IOException
      */
-    DatagramDataController(String name, DatagramChannel ch, InetSocketAddress isa, MessageManager mgr, ProtocolMonitor<DatagramDataController> monitor) throws IOException {
+    DatagramDataController(String name, int broadcastPort, DatagramChannel ch, MessageManager mgr, ProtocolMonitor<DatagramDataController> monitor) throws IOException {
         this.name = name;
+        this.broadcastPort = broadcastPort;
         this.ch = ch;
-        this.isa = isa;
         this.ch.configureBlocking(false);
         this.mgr = mgr;
         this.monitor = monitor;
@@ -101,8 +101,7 @@ public class DatagramDataController implements DataController {
         while (_times > 0) {
             try {
                 this.ch.socket().setSendBufferSize(encoded.length);
-                // InetSocketAddress
-                int cnt = this.ch.send(ByteBuffer.wrap(encoded), new InetSocketAddress("KYLE-N550", this.isa.getPort()));
+                int cnt = this.ch.send(ByteBuffer.wrap(encoded), new InetSocketAddress("255.255.255.255", this.broadcastPort));
                 if (cnt == encoded.length) {
                     logger.debug(String.format("%s> send %s", this.name, ByteUtils.toHexString(encoded, 100)));
                     return true;
@@ -244,7 +243,6 @@ public class DatagramDataController implements DataController {
                             receive();
                         }
                         catch (Exception e) {
-                        	e.printStackTrace();
                         	logger.fatal(dgChannel, e);
                         	break;
                         }

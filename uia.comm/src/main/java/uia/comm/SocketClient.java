@@ -240,22 +240,19 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
         }
         catch (Exception ex) {
             if (this.clientPort > 0) {
-                logger.error(String.format("%s> connect to %s:%s(%d) failed. %s",
+                logger.error(String.format("%s> connect failed to %s:%s, clientPort:%s",
                         this.aliasName,
                         this.addr,
                         this.port,
-                        this.clientPort,
-                        ex.getMessage()));
+                        this.clientPort), ex);
             }
             else {
-                logger.error(String.format("%s> connect to %s:%s failed. %s",
+                logger.error(String.format("%s> connect failed to %s:%s",
                         this.aliasName,
                         this.addr,
-                        this.port,
-                        ex.getMessage()));
+                        this.port), ex);
 
             }
-            logger.error(ex);
             disconnect();
             return false;
         }
