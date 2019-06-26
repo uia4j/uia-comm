@@ -17,7 +17,7 @@ public class DatagramTest implements MessageManager {
                 		new byte[] { (byte)0x99, (byte)0x99, (byte)0x99 }),
                 this,
                 "client");
-        client.connect("192.168.9.123", 10002, 10002);
+        client.connect("localhost", 10002, 10002);
         client.registerCallin(new MessageCallIn<DatagramDataController>() {
 
 			@Override

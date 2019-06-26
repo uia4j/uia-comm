@@ -20,8 +20,6 @@ package uia.comm;
 
 import java.net.InetSocketAddress;
 import java.net.SocketException;
-import java.net.StandardProtocolFamily;
-import java.net.StandardSocketOptions;
 import java.nio.channels.DatagramChannel;
 import java.util.HashMap;
 
@@ -148,9 +146,12 @@ public class DatagramClient implements ProtocolEventHandler<DatagramDataControll
         }
 
         try {
+            this.ch = DatagramChannel.open();
+            /** Android API 24 above
             this.ch = DatagramChannel.open(StandardProtocolFamily.INET);
             this.ch.setOption(StandardSocketOptions.SO_RCVBUF, 2 * this.maxCache);
             this.ch.setOption(StandardSocketOptions.SO_SNDBUF, 2 * this.maxCache);
+             */
             this.ch.socket().setBroadcast(true);
             this.ch.configureBlocking(false);
             this.ch.socket().bind(new InetSocketAddress(this.listenAddress, this.listenPort));
