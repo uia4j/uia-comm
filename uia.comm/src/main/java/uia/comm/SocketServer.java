@@ -25,6 +25,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Timer;
@@ -82,6 +83,8 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
     private ServerSocketChannel ch;
 
     private Timer polling;
+
+    private int pollingCounter;
 
     private int idleTime;
 
@@ -610,9 +613,14 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
         logger.debug(ByteUtils.toHexString(args.getData(), "-"));
     }
 
-    private void polling() {
+    private synchronized void polling() {
         if (this.started) {
-            logger.info(this.aliasName + "> polling");
+        	this.pollingCounter = (this.pollingCounter + 1) % 10;
+        	logger.info(String.format("%s> polling:%s", this.aliasName, this.pollingCounter));
+        	if(pollingCounter == 0) {
+                logger.info(this.aliasName + "> system.gc()");
+        		System.gc();
+        	}
             ArrayList<String> keys = new ArrayList<String>();
             Collection<SocketDataController> controllers = this.controllers.values();
             synchronized (this.controllers) {
