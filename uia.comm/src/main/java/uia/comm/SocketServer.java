@@ -25,7 +25,6 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Timer;
@@ -244,7 +243,6 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
         }
 
         MessageCallOutConcurrent callout = new MessageCallOutConcurrent(clientName, txId, timeout);
-        ExecutorService threadPool = Executors.newSingleThreadExecutor();
 
         ConcurrentHashMap<String, MessageCallOut> callOuts = null;
         synchronized(this.clientCallouts) {
@@ -258,13 +256,18 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
         try {
             if (controller.send(data, 1)) {
+                ExecutorService threadPool = Executors.newSingleThreadExecutor();
                 try {
                     Future<byte[]> future = threadPool.submit(callout);
-                    return future.get();
+                    byte[] result =  future.get();
+                    return result;
                 }
                 catch (Exception e) {
                     logger.error(String.format("%s> %s> reply failed", this.aliasName, clientName));
                     throw new SocketException(String.format("%s> %s> reply failed", this.aliasName, clientName));
+                }
+                finally {
+                    threadPool.shutdown();
                 }
             }
             else {
@@ -731,7 +734,6 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 			        raiseConnected(controller);
 				}
             }).start();
-    
         }
         catch (Exception ex) {
             logger.error(String.format("%s> client connection failed.", this.aliasName), ex);
