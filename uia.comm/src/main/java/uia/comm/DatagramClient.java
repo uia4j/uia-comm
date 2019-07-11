@@ -1,15 +1,27 @@
+/*******************************************************************************
+ * Copyright 2017 UIA
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package uia.comm;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.nio.channels.DatagramChannel;
 import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 
@@ -19,6 +31,12 @@ import uia.comm.protocol.ProtocolEventHandler;
 import uia.comm.protocol.ProtocolMonitor;
 import uia.utils.ByteUtils;
 
+/**
+ * UDP client.
+ *
+ * @author Kyle K. Lin
+ *
+ */
 public class DatagramClient implements ProtocolEventHandler<DatagramDataController>, CommClient<DatagramDataController> {
 
     private final static Logger logger = Logger.getLogger(DatagramClient.class);
@@ -29,9 +47,9 @@ public class DatagramClient implements ProtocolEventHandler<DatagramDataControll
 
     private final HashMap<String, MessageCallIn<DatagramDataController>> callIns;
 
-    private final HashMap<String, MessageCallOut> callOuts;
-
     private final String aliasName;
+
+    private int broadcastPort;
 
     private boolean started;
 
@@ -39,9 +57,11 @@ public class DatagramClient implements ProtocolEventHandler<DatagramDataControll
 
     private DatagramChannel ch;
 
-    private String addr;
-
-    private int port;
+    private String listenAddress;
+    
+    private int listenPort;
+    
+    private int maxCache;
 
     /**
      * The constructor.
@@ -56,59 +76,53 @@ public class DatagramClient implements ProtocolEventHandler<DatagramDataControll
         this.protocol.addMessageHandler(this);
         this.manager = manager;
         this.callIns = new HashMap<String, MessageCallIn<DatagramDataController>>();
-        this.callOuts = new HashMap<String, MessageCallOut>();
         this.started = false;
+        this.maxCache = 20 * 1024;  // 20K
     }
 
-    @Override
+    public int getMaxCache() {
+        return this.maxCache;
+    }
+
+    public void setMaxCache(int maxCache) {
+        this.maxCache = Math.max(16, maxCache);
+    }
+
+	public int getBroadcastPort() {
+		return broadcastPort;
+	}
+
+	public void setBroadcastPort(int broadcastPort) {
+		this.broadcastPort = broadcastPort;
+	}
+
+	public String getListenAddress() {
+		return listenAddress;
+	}
+
+	public void setListenAddress(String listenAddress) {
+		this.listenAddress = listenAddress;
+	}
+
+	public int getListenPort() {
+		return listenPort;
+	}
+
+	public void setListenPort(int listenPort) {
+		this.listenPort = listenPort;
+	}
+
+	@Override
     public String getName() {
         return this.aliasName;
     }
 
-    /**
-     * Get address.
-     * @return Address.
-     */
-    public String getAddr() {
-        return this.addr;
-    }
-
-    /**
-     * Set address.
-     * @param addr Address.
-     */
-    public void setAddr(String addr) {
-        this.addr = addr;
-    }
-
-    /**
-     * Get port no.
-     * @return Port no.
-     */
-    public int getPort() {
-        return this.port;
-    }
-
-    /**
-     * Set port no.
-     * @param port Port no.
-     */
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    /**
-     * Connect to specific socket server.
-     *
-     * @param address Address.
-     * @param port Port no.
-     * @return True if connect success or connected already.
-     */
-    public synchronized boolean connect(String address, int port) {
+    public synchronized boolean connect(String listenAddress, int listenPort, int broadcastPort) {
         disconnect();
 
-        this.addr = address;
-        this.port = port;
+        this.listenAddress = listenAddress;
+        this.listenPort = listenPort;
+        this.broadcastPort = broadcastPort;
         this.started = false;
 
         return tryConnect();
@@ -127,41 +141,44 @@ public class DatagramClient implements ProtocolEventHandler<DatagramDataControll
      * @return Connected or not.
      */
     public synchronized boolean tryConnect() {
-        if (this.addr == null) {
-            this.started = false;
-            return false;
-        }
-
         if (this.started) {
             return true;
         }
 
         try {
             this.ch = DatagramChannel.open();
-            this.ch.connect(new InetSocketAddress(InetAddress.getByName(this.addr), this.port));
-
+            /** Android API 24 above
+            this.ch = DatagramChannel.open(StandardProtocolFamily.INET);
+            this.ch.setOption(StandardSocketOptions.SO_RCVBUF, 2 * this.maxCache);
+            this.ch.setOption(StandardSocketOptions.SO_SNDBUF, 2 * this.maxCache);
+             */
+            this.ch.socket().setBroadcast(true);
+            this.ch.configureBlocking(false);
+            this.ch.socket().bind(new InetSocketAddress(this.listenAddress, this.listenPort));
             this.controller = new DatagramDataController(
                     this.aliasName,
+                    this.broadcastPort,
                     this.ch,
                     this.manager,
                     this.protocol.createMonitor(this.aliasName));
-
-            logger.info(String.format("%s> connect to %s:%s",
-                    this.aliasName,
-                    this.addr,
-                    this.port));
-
+            this.controller.setMaxCache(this.maxCache);
+            this.controller.start();
             this.started = true;
+            
+            logger.info(String.format("%s> listen on %s:%s, broadcastPort:%s",
+                    this.aliasName,
+                    this.listenAddress,
+                    this.listenPort,
+                    this.broadcastPort));
+            
             return true;
         }
         catch (Exception ex) {
-            logger.error(String.format("%s> connect to %s:%s failure. %s",
+            logger.error(String.format("%s> listen failed on %s:%s, broadcastPort:%s",
                     this.aliasName,
-                    this.addr,
-                    this.port,
-                    ex.getMessage()));
-
-            logger.error(ex);
+                    this.listenAddress,
+                    this.listenPort,
+                    this.broadcastPort), ex);
             disconnect();
             return false;
         }
@@ -189,6 +206,7 @@ public class DatagramClient implements ProtocolEventHandler<DatagramDataControll
         }
 
         try {
+        	this.controller.stop();
             logger.info(String.format("%s> disconnect", this.aliasName));
         }
         catch (Exception ex) {
@@ -228,95 +246,22 @@ public class DatagramClient implements ProtocolEventHandler<DatagramDataControll
 
     @Override
     public byte[] send(final byte[] data, String txId, long timeout) throws SocketException {
-        return send(data, txId, timeout, 1);
+    	throw new SocketException("Not support on UDP. Use send(byte[], int).");
     }
 
     @Override
     public byte[] send(final byte[] data, String txId, long timeout, int retry) throws SocketException {
-        if (!this.started) {
-            throw new SocketException(this.aliasName + "> is not started.");
-        }
-
-        MessageCallOutConcurrent callout = new MessageCallOutConcurrent(getName(), txId, timeout);
-        ExecutorService threadPool = Executors.newSingleThreadExecutor();
-
-        try {
-            synchronized (this.callOuts) {
-                this.callOuts.put(txId, callout);
-            }
-
-            if (this.controller.send(data, retry)) {
-                try {
-                    Future<byte[]> future = threadPool.submit(callout);
-                    return future.get();
-                }
-                catch (Exception e) {
-                    logger.error(String.format("%s> callout failed", this.aliasName), e);
-                    return null;
-                }
-            }
-            else {
-                logger.debug(String.format("%s> send %s failure", this.aliasName, ByteUtils.toHexString(data, 100)));
-                throw new SocketException(this.aliasName + "> send failure");
-            }
-        }
-        finally {
-            threadPool.shutdown();
-            synchronized (this.callOuts) {
-                this.callOuts.remove(txId);
-            }
-        }
+    	throw new SocketException("Not support on UDP. Use send(byte[], int).");
     }
 
     @Override
     public boolean send(final byte[] data, final MessageCallOut callOut, long timeout) throws SocketException {
-        return send(data, callOut, timeout, 1);
+    	throw new SocketException("Not support on UDP. Use send(byte[], int).");
     }
 
     @Override
     public boolean send(final byte[] data, final MessageCallOut callOut, long timeout, int retry) throws SocketException {
-        if (!this.started) {
-            throw new SocketException(this.aliasName + "> is not started.");
-        }
-
-        final String tx = callOut.getTxId();
-        synchronized (this.callOuts) {
-            this.callOuts.put(tx, callOut);
-        }
-
-        if (this.controller.send(data, retry)) {
-            Timer timer = new Timer();
-            timer.schedule(new TimerTask() {
-
-                @Override
-                public void run() {
-                    MessageCallOut out = null;
-                    synchronized (DatagramClient.this.callOuts) {
-                        if (DatagramClient.this.callOuts.containsKey(tx)) {
-                            logger.debug(String.format("%s> tx:%s callOut timeout", DatagramClient.this.aliasName, callOut.getTxId()));
-                            out = DatagramClient.this.callOuts.remove(tx);
-                        }
-                    }
-                    if (out != null) {
-                        try {
-                            out.timeout();
-                        }
-                        catch (Exception ex) {
-
-                        }
-                    }
-                }
-
-            }, timeout);
-            return true;
-        }
-        else {
-            synchronized (this.callOuts) {
-                this.callOuts.remove(tx);
-            }
-            logger.debug(String.format("%s> send %s failure", this.aliasName, ByteUtils.toHexString(data, 100)));
-            return false;
-        }
+    	throw new SocketException("Not support on UDP. Use send(byte[], int).");
     }
 
     @Override
@@ -360,26 +305,7 @@ public class DatagramClient implements ProtocolEventHandler<DatagramDataControll
             }).start();
         }
         else {
-            String tx = this.manager.findTx(received);
-            final MessageCallOut callOut = this.callOuts.get(tx);
-            if (callOut == null) {
-                logger.debug(String.format("%s> cmd:%s tx:%s callout reply missing", this.aliasName, cmd, tx));
-                return;
-            }
-
-            synchronized (this.callOuts) {
-                this.callOuts.remove(tx);
-            }
-
-            logger.debug(String.format("%s> cmd:%s tx:%s callout reply", this.aliasName, cmd, tx));
-            new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-                    callOut.execute(received);
-                }
-
-            }).start();
+            logger.error(String.format("%s> cmd:%s callIn NOT FOUND", this.aliasName, cmd));
         }
     }
 

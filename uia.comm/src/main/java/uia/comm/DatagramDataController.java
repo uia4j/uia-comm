@@ -19,8 +19,13 @@
 package uia.comm;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.util.Arrays;
+import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 
@@ -39,12 +44,20 @@ public class DatagramDataController implements DataController {
     private final ProtocolMonitor<DatagramDataController> monitor;
 
     private final String name;;
+    
+    private final int broadcastPort;
 
     private MessageManager mgr;
 
     private DatagramChannel ch;
 
     private long lastUpdate;
+
+    private boolean started;
+
+    private Selector selector;
+
+    private int maxCache;
 
     /**
      *
@@ -54,14 +67,25 @@ public class DatagramDataController implements DataController {
      * @param idlePeriod
      * @throws IOException
      */
-    DatagramDataController(String name, DatagramChannel ch, MessageManager mgr, ProtocolMonitor<DatagramDataController> monitor) throws IOException {
+    DatagramDataController(String name, int broadcastPort, DatagramChannel ch, MessageManager mgr, ProtocolMonitor<DatagramDataController> monitor) throws IOException {
         this.name = name;
+        this.broadcastPort = broadcastPort;
         this.ch = ch;
         this.ch.configureBlocking(false);
         this.mgr = mgr;
         this.monitor = monitor;
         this.monitor.setController(this);
         this.lastUpdate = System.currentTimeMillis();
+        this.started = false;
+        this.maxCache = 8 * 1024;  // 8K
+    }
+
+    public int getMaxCache() {
+        return this.maxCache;
+    }
+
+    public void setMaxCache(int maxCache) {
+        this.maxCache = Math.min(2000000, Math.max(16, maxCache));  // 2M
     }
 
     @Override
@@ -77,7 +101,7 @@ public class DatagramDataController implements DataController {
         while (_times > 0) {
             try {
                 this.ch.socket().setSendBufferSize(encoded.length);
-                int cnt = this.ch.write(ByteBuffer.wrap(encoded));
+                int cnt = this.ch.send(ByteBuffer.wrap(encoded), new InetSocketAddress("255.255.255.255", this.broadcastPort));
                 if (cnt == encoded.length) {
                     logger.debug(String.format("%s> send %s", this.name, ByteUtils.toHexString(encoded, 100)));
                     return true;
@@ -87,13 +111,57 @@ public class DatagramDataController implements DataController {
                 }
             }
             catch (Exception ex) {
-
+            	ex.printStackTrace();
             }
             finally {
                 _times--;
             }
         }
         return false;
+    }
+    
+    synchronized boolean start() {
+        if (this.ch == null || this.started) {
+            return false;
+        }
+
+        this.lastUpdate = System.currentTimeMillis();
+        try {
+            this.selector = Selector.open();
+            this.ch.socket().setReuseAddress(true);
+            this.ch.register(this.selector, SelectionKey.OP_READ);
+        }
+        catch (Exception ex) {
+            return false;
+        }
+
+        this.started = true;
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                running();
+            }
+
+        }).start();
+        return true;
+    }
+
+    synchronized void stop() {
+        if (this.ch != null) {
+            try {
+                if (this.selector != null) {
+                    this.ch.keyFor(this.selector).cancel();
+                    this.selector.close();
+                }
+                this.ch.close();
+            }
+            catch (Exception ex) {
+
+            }
+        }
+        this.ch = null;
+        this.started = false;
     }
 
     void lastUpdate() {
@@ -113,5 +181,74 @@ public class DatagramDataController implements DataController {
 
     DatagramChannel getChannel() {
         return this.ch;
+    }
+
+    /**
+     * Receive message from socket channel.
+     *
+     * @throws IOException
+     */
+    synchronized boolean receive() throws IOException {
+        if (this.ch == null) {
+            logger.debug(this.name + "> no channel");
+            return false;
+        }
+
+        ByteBuffer buffer = ByteBuffer.allocate(this.maxCache * 2);
+        this.ch.receive(buffer);
+        int len = buffer.position();
+        while (len > 0) {
+            logger.debug(this.name + "> is receiving: " + len);
+            byte[] value = (byte[]) buffer.flip().array();
+            value = Arrays.copyOf(value, len);
+            for (byte b : value) {
+                if (this.monitor.getDataLength() > this.maxCache) {
+                    logger.fatal(this.name + "> out of maxCchte:" + this.maxCache);
+                    this.monitor.reset();
+                }
+                this.monitor.read(b);
+            }
+            buffer.clear();
+            
+            this.ch.receive(buffer);
+            len = buffer.position();
+        }
+        this.monitor.readEnd();
+        return true;
+    }
+
+    private void running() {
+        // use internal selector to handle received data.
+        while (this.started) {
+            try {
+                this.selector.select(); // wait NIO event
+            }
+            catch (Exception ex) {
+                continue;
+            }
+
+            if (this.selector.isOpen()) {
+                Iterator<SelectionKey> iterator = this.selector.selectedKeys().iterator();
+                while (iterator.hasNext()) {
+                    SelectionKey selectionKey = iterator.next();
+                    DatagramChannel dgChannel = (DatagramChannel) selectionKey.channel();
+                    iterator.remove();
+
+                    if (!selectionKey.isValid()) {
+                        continue;
+                    }   
+                    
+                    if (selectionKey.isReadable()) {
+                        try {
+                            receive();
+                        }
+                        catch (Exception e) {
+                        	logger.fatal(dgChannel, e);
+                        	break;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
