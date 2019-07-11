@@ -54,6 +54,8 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
     public enum ConnectionStyle {
         NORMAL, ONE_EACH_CLIENT, ONLYONE
     }
+    
+    private static int INST = 0;
 
     private final static Logger logger = Logger.getLogger(SocketServer.class);
 
@@ -83,6 +85,8 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
     private Timer polling;
 
+    private int pollingCounter;
+
     private int idleTime;
 
     private int maxCache;
@@ -101,7 +105,8 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
      * @throws Exception Raise construction failed.
      */
     public SocketServer(Protocol<SocketDataController> protocol, int port, MessageManager manager, String aliasName, ConnectionStyle connectionStyle) throws Exception {
-        this.aliasName = aliasName;
+    	INST++;
+        this.aliasName = aliasName == null ? ("SocketServer-" + INST): aliasName;
         this.protocol = protocol;
         this.protocol.addMessageHandler(this);
         this.manager = manager;
@@ -241,7 +246,6 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
         }
 
         MessageCallOutConcurrent callout = new MessageCallOutConcurrent(clientName, txId, timeout);
-        ExecutorService threadPool = Executors.newSingleThreadExecutor();
 
         ConcurrentHashMap<String, MessageCallOut> callOuts = null;
         synchronized(this.clientCallouts) {
@@ -255,13 +259,18 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 
         try {
             if (controller.send(data, 1)) {
+                ExecutorService threadPool = Executors.newSingleThreadExecutor();
                 try {
                     Future<byte[]> future = threadPool.submit(callout);
-                    return future.get();
+                    byte[] result =  future.get();
+                    return result;
                 }
                 catch (Exception e) {
                     logger.error(String.format("%s> %s> reply failed", this.aliasName, clientName));
                     throw new SocketException(String.format("%s> %s> reply failed", this.aliasName, clientName));
+                }
+                finally {
+                    threadPool.shutdown();
                 }
             }
             else {
@@ -392,7 +401,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
             public void run() {
                 running();
             }
-        }).start();
+        }, SocketServer.this.aliasName).start();
 
         // polling
         this.polling = new Timer();
@@ -433,7 +442,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 				public void run() {
 		            raiseDisconnected(controller);
 				}
-            }).start();
+            }, SocketServer.this.aliasName + "-DISCONN").start();
         }
     }
 
@@ -549,7 +558,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
                 	}
                 }
 
-            }).start();
+            }, SocketServer.this.aliasName + "-IN").start();
         }
         else {
         	ConcurrentHashMap<String, MessageCallOut> callOuts = this.clientCallouts.get(monitor.getController().getName());
@@ -591,7 +600,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
                 	}
                 }
 
-            }).start();
+            }, SocketServer.this.aliasName + "-OUT").start();
         }
     }
 
@@ -610,9 +619,14 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
         logger.debug(ByteUtils.toHexString(args.getData(), "-"));
     }
 
-    private void polling() {
+    private synchronized void polling() {
         if (this.started) {
-            logger.info(this.aliasName + "> polling");
+        	this.pollingCounter = (this.pollingCounter + 1) % 10;
+        	logger.info(String.format("%s> polling:%s", this.aliasName, this.pollingCounter));
+        	if(pollingCounter == 0) {
+                logger.info(this.aliasName + "> system.gc()");
+        		System.gc();
+        	}
             ArrayList<String> keys = new ArrayList<String>();
             Collection<SocketDataController> controllers = this.controllers.values();
             synchronized (this.controllers) {
@@ -722,8 +736,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
 				public void run() {
 			        raiseConnected(controller);
 				}
-            }).start();
-    
+            }, SocketServer.this.aliasName + "-CONN").start();
         }
         catch (Exception ex) {
             logger.error(String.format("%s> client connection failed.", this.aliasName), ex);
