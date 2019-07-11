@@ -206,6 +206,7 @@ public class DatagramClient implements ProtocolEventHandler<DatagramDataControll
         }
 
         try {
+        	this.controller.stop();
             logger.info(String.format("%s> disconnect", this.aliasName));
         }
         catch (Exception ex) {
