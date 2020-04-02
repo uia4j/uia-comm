@@ -18,7 +18,6 @@
  *******************************************************************************/
 package uia.comm;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,8 +37,6 @@ public class XMLSocketTest implements MessageManager, MessageCallOut, MessageCal
     private final SocketServer server;
 
     public XMLSocketTest() throws Exception {
-        PropertyConfigurator.configure("log4j.properties");
-
         this.server = new SocketServer(
                 new XMLProtocol<SocketDataController>("BBRAUN"),
                 PORT,

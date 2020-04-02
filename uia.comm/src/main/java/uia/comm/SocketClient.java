@@ -34,7 +34,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uia.comm.protocol.Protocol;
 import uia.comm.protocol.ProtocolEventArgs;
@@ -50,7 +51,7 @@ import uia.utils.ByteUtils;
  */
 public class SocketClient implements ProtocolEventHandler<SocketDataController>, CommClient<SocketDataController> {
 
-    private final static Logger logger = Logger.getLogger(SocketClient.class);
+    private final static Logger logger = LoggerFactory.getLogger(SocketClient.class);
 
     private final Protocol<SocketDataController> protocol;
 

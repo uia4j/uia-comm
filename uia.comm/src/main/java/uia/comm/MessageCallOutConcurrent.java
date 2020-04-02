@@ -20,7 +20,8 @@ package uia.comm;
 
 import java.util.concurrent.Callable;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -29,7 +30,7 @@ import org.apache.log4j.Logger;
  */
 class MessageCallOutConcurrent implements MessageCallOut, Callable<byte[]> {
 
-    private final static Logger logger = Logger.getLogger(MessageCallOutConcurrent.class);
+    private final static Logger logger = LoggerFactory.getLogger(MessageCallOutConcurrent.class);
     
     private final String name;
 

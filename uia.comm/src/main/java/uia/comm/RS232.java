@@ -35,7 +35,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uia.comm.protocol.Protocol;
 import uia.comm.protocol.ProtocolEventArgs;
@@ -50,7 +51,7 @@ import uia.utils.ByteUtils;
  */
 public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {
 
-    private final static Logger logger = Logger.getLogger(RS232.class);
+    private final static Logger logger = LoggerFactory.getLogger(RS232.class);
 
     private String aliasName;
 

@@ -27,7 +27,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uia.comm.protocol.ProtocolMonitor;
 import uia.utils.ByteUtils;
@@ -39,7 +40,7 @@ import uia.utils.ByteUtils;
  */
 public class SocketDataController implements DataController {
 
-    private final static Logger logger = Logger.getLogger(SocketDataController.class);
+    private final static Logger logger = LoggerFactory.getLogger(SocketDataController.class);
 
     private final ProtocolMonitor<SocketDataController> monitor;
 
@@ -112,7 +113,7 @@ public class SocketDataController implements DataController {
                     return true;
                 }
                 else {
-                    logger.fatal(String.format("%s> write count error!!", this.name));
+                    logger.error(String.format("%s> write count error!!", this.name));
                 }
             }
             catch (Exception ex) {
@@ -206,7 +207,7 @@ public class SocketDataController implements DataController {
                 value = Arrays.copyOf(value, len);
                 for (byte b : value) {
                     if (this.monitor.getDataLength() > this.maxCache) {
-                        logger.fatal(this.name + "> out of maxCchte:" + this.maxCache);
+                        logger.error(this.name + "> out of maxCchte:" + this.maxCache);
                         this.monitor.reset();
                     }
                     this.monitor.read(b);
@@ -244,7 +245,7 @@ public class SocketDataController implements DataController {
                         receive();
                     }
                     catch (Exception e) {
-                    	logger.fatal(socketChannel, e);
+                    	logger.error(socketChannel.toString() + " failed", e);
                     	break;
                     }
                 }

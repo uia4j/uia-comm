@@ -18,7 +18,6 @@
  *******************************************************************************/
 package uia.comm;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +37,6 @@ public class NGSocketTest implements MessageManager, MessageCallOut, MessageCall
     private final SocketServer server;
 
     public NGSocketTest() throws Exception {
-        PropertyConfigurator.configure("log4j.properties");
         this.server = new SocketServer(
                 new NGProtocol<SocketDataController>(),
                 PORT,

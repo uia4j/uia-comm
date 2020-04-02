@@ -18,7 +18,6 @@
  *******************************************************************************/
 package uia.comm;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,7 +38,6 @@ public class SocketClientTest {
 	private int size = 100000;
 
     public SocketClientTest() {
-        PropertyConfigurator.configure("log4j.properties");
     }
 
     @Test

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
  	<groupId>org.uia.solution</groupId>
  	<artifactId>uia-comm</artifactId>
-	<version>0.4.0</version>
+	<version>0.5.0</version>
 	<packaging>jar</packaging>
 	<name>uia-comm</name>
 	<url>https://github.com/uia4j/uia-comm</url>
@@ -20,9 +20,10 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.14</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.30</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.rxtx</groupId>
@@ -33,6 +34,11 @@
 			<groupId>org.uia.solution</groupId>
 			<artifactId>uia-utils</artifactId>
 			<version>0.2.0</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>slf4j-api</artifactId>
+		    <version>1.7.30</version>
 		</dependency>
 	</dependencies>
     <repositories>

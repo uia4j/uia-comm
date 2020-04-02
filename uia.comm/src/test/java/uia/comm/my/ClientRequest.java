@@ -18,8 +18,6 @@
  *******************************************************************************/
 package uia.comm.my;
 
-import org.junit.Assert;
-
 import uia.comm.MessageCallIn;
 import uia.comm.MessageCallOut;
 import uia.comm.SocketDataController;

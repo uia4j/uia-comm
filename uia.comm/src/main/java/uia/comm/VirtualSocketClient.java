@@ -20,7 +20,8 @@ package uia.comm;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uia.utils.ByteUtils;
 
@@ -31,7 +32,7 @@ import uia.utils.ByteUtils;
  */
 public class VirtualSocketClient {
 
-    private final static Logger logger = Logger.getLogger(VirtualSocketClient.class);
+    private final static Logger logger = LoggerFactory.getLogger(VirtualSocketClient.class);
 
     private SocketClient activeClient;
 

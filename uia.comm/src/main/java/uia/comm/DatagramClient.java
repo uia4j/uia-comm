@@ -23,7 +23,8 @@ import java.net.SocketException;
 import java.nio.channels.DatagramChannel;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uia.comm.protocol.Protocol;
 import uia.comm.protocol.ProtocolEventArgs;
@@ -39,7 +40,7 @@ import uia.utils.ByteUtils;
  */
 public class DatagramClient implements ProtocolEventHandler<DatagramDataController>, CommClient<DatagramDataController> {
 
-    private final static Logger logger = Logger.getLogger(DatagramClient.class);
+    private final static Logger logger = LoggerFactory.getLogger(DatagramClient.class);
 
     private final Protocol<DatagramDataController> protocol;
 
