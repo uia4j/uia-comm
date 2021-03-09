@@ -18,46 +18,60 @@
  *******************************************************************************/
 package uia.comm.my;
 
-import java.util.Arrays;
-
-import uia.comm.MessageManager;
+import uia.comm.MessageCallIn;
+import uia.comm.MessageCallOut;
+import uia.comm.SocketDataController;
 
 /**
  *
  * @author Kyle K. Lin
  *
  */
-public class ServerManager implements MessageManager {
+public class ClientRequestNoReply implements MessageCallIn<SocketDataController>, MessageCallOut {
+	
+	private String name;
+	
+	private String message;
+	
+	private String tx;
+	
+	public ClientRequestNoReply(String name, int size) {
+		this.name = name;
+		StringBuilder body = new StringBuilder();
+		for(int i=0; i< size; i++) {
+			body.append("0");
+		}
+		this.message = body.append("_END").toString(); 
+	}
+	
+	public byte[] sampling(String tx) {
+		this.tx = tx;
+		return ("BEGIN_CNTREQ" + this.tx + this.message).getBytes();
+	}
 
-    @Override
-    public boolean isCallIn(String cmd) {
-        return "CNTREQ".equals(cmd);
+	@Override
+    public String getCmdName() {
+        return "CNTREQ";
     }
 
     @Override
-    public String findCmd(byte[] data) {
-        String cmd = new String(Arrays.copyOfRange(data, 6, 12));
-        return cmd;
+    public String getTxId() {
+        return this.tx;
     }
 
     @Override
-    public String findTx(byte[] data) {
-        String tx = new String(Arrays.copyOfRange(data, 12, 13));
-        return tx;
+    public void execute(byte[] request, SocketDataController controller) {
+    	System.out.println("got");
     }
 
     @Override
-    public byte[] decode(byte[] data) {
-        return data;
+    public void execute(byte[] reply) {
+    	System.out.println(this.name + ", " + this.tx + "> reply:   " + reply.length);
     }
 
     @Override
-    public byte[] encode(byte[] data) {
-        return data;
+    public void timeout() {
+    	System.out.println(this.name + ", " + this.tx + "> timeout");
     }
 
-    @Override
-    public boolean validate(byte[] data) {
-        return true;
-    }
 }

@@ -157,8 +157,7 @@ public class SocketDataController implements DataController {
         return true;
     }
 
-    void lastUpdate() {
-        logger.info(this.name + "> lastUpdate: " + new Date());
+    void keepAlive() {
         this.lastUpdate = System.currentTimeMillis();
     }
 
@@ -228,7 +227,7 @@ public class SocketDataController implements DataController {
         // use internal selector to handle received data.
         while (this.started) {
             try {
-                this.selector.select(); // wait NIO event
+                this.selector.select(60000); // wait NIO event
             }
             catch (Exception ex) {
                 continue;

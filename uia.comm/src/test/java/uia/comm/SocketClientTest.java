@@ -24,6 +24,7 @@ import org.junit.Test;
 import uia.comm.SocketServer.ConnectionStyle;
 import uia.comm.my.ClientManager;
 import uia.comm.my.ClientRequest;
+import uia.comm.my.ClientRequestNoReply;
 import uia.comm.my.ServerManager;
 import uia.comm.my.ServerRequest;
 import uia.comm.protocol.ht.HTProtocol;
@@ -41,8 +42,8 @@ public class SocketClientTest {
     }
 
     @Test
-    public void testCase1() throws Exception {
-        SocketServer server = create("OnlyOne", 2236, ConnectionStyle.ONLYONE);
+    public void testCase0() throws Exception {
+        SocketServer server = serverNoReply("OnlyOne", 2236, ConnectionStyle.ONLYONE);
         server.addServerListener(new SocketServerListener() {
 
 			@Override
@@ -68,17 +69,65 @@ public class SocketClientTest {
         Thread.sleep(1000);
         Assert.assertEquals(1, server.getClientCount());
 
-    	for(int i =0; i<5; i++) {
+        long t1 = System.currentTimeMillis();
+		ClientRequestNoReply req = new ClientRequestNoReply("clnt", this.size);
+        int count = 10000;
+    	for(int i = 0; i<count; i++) {
+    		String tx = "" + (i % 10);
+        	try {
+				client.send(req.sampling(tx));
+			} catch (Exception e) {
+        		System.out.println("clnt, " + tx + "> broken");
+			}
+    	}
+        long t2 = System.currentTimeMillis();
+        System.out.println(t2 - t1);
+    	Thread.sleep(4000);
+    	
+    	server.stop();
+    }
+
+    @Test
+    public void testCase1() throws Exception {
+        SocketServer server = serverWithReply("OnlyOne", 2236, ConnectionStyle.ONLYONE);
+        server.addServerListener(new SocketServerListener() {
+
+			@Override
+			public void connected(SocketDataController controller) {
+				System.out.println(controller.getName() + " connected");
+			}
+
+			@Override
+			public void disconnected(SocketDataController controller) {
+				System.out.println(controller.getName() + " disconnected");
+			}
+        	
+        });
+        server.start();
+
+        SocketClient client = new SocketClient(
+                new HTProtocol<SocketDataController>("BEGIN_".getBytes(), "_END".getBytes()),
+        		new ClientManager(), 
+        		"clnt");
+        client.setMaxCache(2000000);
+        client.registerCallin(new ServerRequest(client.getName(), this.size));
+        client.connect("localhost", 2236);
+        Thread.sleep(1000);
+        Assert.assertEquals(1, server.getClientCount());
+
+        long t1 = System.currentTimeMillis();
+    	for(int i = 0; i < 5; i++) {
             ClientRequest req = new ClientRequest("clnt", this.size);
     		String tx = "" + (i % 10);
         	try {
         		byte[] data = req.sampling(tx);
-        		System.out.println("clnt, " + tx + "> request: " + data.length);
 				client.send(data, req, 500);
 			} catch (Exception e) {
         		System.out.println("clnt, " + tx + "> broken");
 			}
     	}
+        long t2 = System.currentTimeMillis();
+        System.out.println(t2 - t1);
 
     	Thread.sleep(4000);
     	
@@ -88,7 +137,7 @@ public class SocketClientTest {
 
     @Test
     public void testCase2() throws Exception {
-        SocketServer server = create("OnlyOne", 2236, ConnectionStyle.ONLYONE);
+        SocketServer server = serverWithReply("OnlyOne", 2236, ConnectionStyle.ONLYONE);
         server.addServerListener(new SocketServerListener() {
 
 			@Override
@@ -114,7 +163,7 @@ public class SocketClientTest {
         Assert.assertEquals(1, server.getClientCount());
 
         // normal
-    	for(int i =0; i<3; i++) {
+    	for(int i = 0; i < 3; i++) {
             ClientRequest req = new ClientRequest("clnt", this.size);
     		String tx = "" + (i % 10);
         	try {
@@ -149,7 +198,7 @@ public class SocketClientTest {
 
     @Test
     public void testCase3() throws Exception {
-        SocketServer server = create("OnlyOne", 2236, ConnectionStyle.ONLYONE);
+        SocketServer server = serverWithReply("OnlyOne", 2236, ConnectionStyle.ONLYONE);
         server.addServerListener(new SocketServerListener() {
 
 			@Override
@@ -207,15 +256,26 @@ public class SocketClientTest {
     	}
     }
 
-    private SocketServer create(String name, int port, ConnectionStyle cs) throws Exception {
+    private SocketServer serverWithReply(String name, int port, ConnectionStyle cs) throws Exception {
         final SocketServer server = new SocketServer(
                 new HTProtocol<SocketDataController>("BEGIN_".getBytes(), "_END".getBytes()),
                 port,
                 new ServerManager(),
                 name,
                 cs);
-        server.setIdleTime(5000);
         server.registerCallin(new ClientRequest(name, this.size));
+        server.setMaxCache(2000000);
+        return server;
+    }
+
+    private SocketServer serverNoReply(String name, int port, ConnectionStyle cs) throws Exception {
+        final SocketServer server = new SocketServer(
+                new HTProtocol<SocketDataController>("BEGIN_".getBytes(), "_END".getBytes()),
+                port,
+                new ServerManager(),
+                name,
+                cs);
+        server.registerCallin(new ClientRequestNoReply(name, this.size));
         server.setMaxCache(2000000);
         return server;
     }

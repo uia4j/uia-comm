@@ -168,7 +168,7 @@ public class SocketClient implements ProtocolEventHandler<SocketDataController>,
     }
 
     public void lastUpdate() {
-        this.controller.lastUpdate();
+        this.controller.keepAlive();
     }
 
     public boolean isIdle(int timeout) {

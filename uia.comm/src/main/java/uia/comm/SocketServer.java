@@ -424,6 +424,15 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
      * @param clientName Client name.
      */
     public void disconnect(String clientName) {
+    	disconnect(clientName, true);
+    }
+
+    /**
+     * Disconnect specific socket client.
+     *
+     * @param clientName Client name.
+     */
+    public void disconnect(String clientName, boolean notifyEvent) {
         final SocketDataController controller = this.controllers.remove(clientName);
 
         this.clientCallouts.remove(clientName);
@@ -437,13 +446,15 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
             }
             controller.stop();
 
-            new Thread(new Runnable() {
+            if(notifyEvent) {
+                new Thread(new Runnable() {
 
-				@Override
-				public void run() {
-		            raiseDisconnected(controller);
-				}
-            }, SocketServer.this.aliasName + "-DISCONN").start();
+    				@Override
+    				public void run() {
+    		            raiseDisconnected(controller);
+    				}
+                }, SocketServer.this.aliasName + "-DISCONN").start();
+            }
         }
     }
 
@@ -529,7 +540,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
             return;
         }
 
-        monitor.getController().lastUpdate();
+        monitor.getController().keepAlive();
 
         if (this.manager.isCallIn(cmd)) {
             final MessageCallIn<SocketDataController> callIn = this.callIns.get(cmd);
