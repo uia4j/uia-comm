@@ -7,7 +7,7 @@ import uia.comm.protocol.ProtocolMonitor;
  *
  * @author Kyle K. Lin
  *
- * @param <C>
+ * @param <C> The reference data type.
  */
 public class XMLProtocol<C> extends AbstractProtocol<C> {
 

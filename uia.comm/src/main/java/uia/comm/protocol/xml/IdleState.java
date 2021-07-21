@@ -4,7 +4,7 @@ package uia.comm.protocol.xml;
  *
  * @author Kyle K. Lin
  *
- * @param <C>
+ * @param <C> The reference data type.
  */
 public class IdleState<C> implements XMLState<C> {
 

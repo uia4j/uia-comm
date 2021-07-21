@@ -103,6 +103,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
      * @param port Socket port.
      * @param manager Protocol manager.
      * @param aliasName Alias name.
+     * @param connectionStyle The connection style.
      * @throws Exception Raise construction failed.
      */
     public SocketServer(Protocol<SocketDataController> protocol, int port, MessageManager manager, String aliasName, ConnectionStyle connectionStyle) throws Exception {
@@ -431,6 +432,7 @@ public class SocketServer implements ProtocolEventHandler<SocketDataController> 
      * Disconnect specific socket client.
      *
      * @param clientName Client name.
+     * @param notifyEvent Raise the event or not.
      */
     public void disconnect(String clientName, boolean notifyEvent) {
         final SocketDataController controller = this.controllers.remove(clientName);

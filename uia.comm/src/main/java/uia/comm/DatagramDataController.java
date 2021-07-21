@@ -222,7 +222,11 @@ public class DatagramDataController implements DataController {
         // use internal selector to handle received data.
         while (this.started) {
             try {
-                this.selector.select(); // wait NIO event
+                int chs = this.selector.select(5000); // wait NIO event, timeout 5000
+                if(chs == 0) {
+                	continue;
+                }
+                
             }
             catch (Exception ex) {
                 continue;

@@ -24,7 +24,7 @@ import java.util.ArrayList;
  *
  * @author Kyle K. Lin
  *
- * @param <C>
+ * @param <C> The reference data type.
  */
 public abstract class AbstractProtocolMonitor<C> implements ProtocolMonitor<C> {
 

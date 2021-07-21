@@ -22,7 +22,7 @@ package uia.comm.protocol;
  *
  * @author Kyle K. Lin
  *
- * @param <C>
+ * @param <C> The reference data type.
  */
 public interface ProtocolEventHandler<C> {
 

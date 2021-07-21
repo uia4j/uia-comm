@@ -24,7 +24,7 @@ import java.util.List;
  *
  * @author Kyle K. Lin
  *
- * @param <T>
+ * @param <T> The reference data type.
  */
 public class MultiProtocol<T> extends AbstractProtocol<T> {
 

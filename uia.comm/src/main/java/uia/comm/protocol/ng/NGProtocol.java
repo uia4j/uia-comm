@@ -25,7 +25,7 @@ import uia.comm.protocol.ProtocolMonitor;
  *
  * @author Kyle K. Lin
  *
- * @param <C>
+ * @param <C> The reference data type.
  */
 public class NGProtocol<C> extends AbstractProtocol<C> {
 

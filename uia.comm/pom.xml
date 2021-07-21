@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
- 	<groupId>org.uia.solution</groupId>
- 	<artifactId>uia-comm</artifactId>
-	<version>0.5.2</version>
+	<groupId>org.uia.solution</groupId>
+	<artifactId>uia-comm</artifactId>
+	<version>0.5.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>uia-comm</name>
 	<url>https://github.com/uia4j/uia-comm</url>
@@ -16,7 +16,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.11</version>
+			<version>[4.13.1,)</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -33,24 +33,26 @@
 		<dependency>
 			<groupId>org.uia.solution</groupId>
 			<artifactId>uia-utils</artifactId>
-			<version>0.2.0</version>
+			<version>0.3.1</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.slf4j</groupId>
-		    <artifactId>slf4j-api</artifactId>
-		    <version>1.7.30</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.30</version>
 		</dependency>
 	</dependencies>
-    <repositories>
-        <repository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>uia4j</id>
-            <name>bintray-uia4j</name>
-            <url>https://dl.bintray.com/uia4j/maven</url>
-        </repository>
-    </repositories>
+	<repositories>
+		<repository>
+			<id>my-github</id>
+			<url>https://maven.pkg.github.com/uia4j/repos</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
+	</repositories>
 	<build>
 		<finalName>${project.artifactId}-${project.version}</finalName>
 		<plugins>
@@ -111,8 +113,8 @@
 	</build>
 	<distributionManagement>
 		<repository>
-			<id>bintray-my-maven</id>
-			<url>https://api.bintray.com/maven/uia4j/maven/uia-comm/;publish=1</url>
+			<id>my-github</id>
+			<url>https://maven.pkg.github.com/uia4j/repos</url>
 		</repository>
 	</distributionManagement>
 	<issueManagement>

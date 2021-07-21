@@ -24,7 +24,7 @@ import java.util.ArrayList;
  *
  * @author Kyle K. Lin
  *
- * @param <T>
+ * @param <T> The reference data type.
  */
 public class MultiProtocolMonitor<T> implements ProtocolMonitor<T> {
 

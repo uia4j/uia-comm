@@ -91,7 +91,7 @@ public class RS232 implements ProtocolEventHandler<RS232>, CommClient<RS232> {
      * @param stopBits Stop bits.
      * @param parity Parity.
      * @return Success or not.
-     * @throws Exception
+     * @throws Exception Failed to connect to the device.
      */
     public boolean connect(String portName, int baudrate, int dataBits, int stopBits, int parity) throws Exception {
         this.monitor = this.protocol.createMonitor(this.aliasName);

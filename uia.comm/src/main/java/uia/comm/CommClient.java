@@ -26,7 +26,7 @@ import uia.comm.protocol.Protocol;
  *
  * @author Kyle K. Lin
  *
- * @param <C>
+ * @param <C> The reference data type.
  */
 public interface CommClient<C> {
 
