@@ -154,8 +154,13 @@ public class DatagramClient implements ProtocolEventHandler<DatagramDataControll
             this.ch.setOption(StandardSocketOptions.SO_SNDBUF, 2 * this.maxCache);
              */
             this.ch.socket().setBroadcast(true);
-            this.ch.configureBlocking(true);
-            this.ch.socket().bind(new InetSocketAddress(this.listenAddress, this.listenPort));
+            this.ch.configureBlocking(false);
+            if(this.listenAddress == null || "*".equals(this.listenAddress)) {
+                this.ch.socket().bind(new InetSocketAddress(this.listenPort));
+            }
+            else {
+                this.ch.socket().bind(new InetSocketAddress(this.listenAddress, this.listenPort));
+            }
             this.controller = new DatagramDataController(
                     this.aliasName,
                     this.broadcastPort,

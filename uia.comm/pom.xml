@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.uia.solution</groupId>
 	<artifactId>uia-comm</artifactId>
-	<version>0.5.3-SNAPSHOT</version>
+	<version>0.5.3</version>
 	<packaging>jar</packaging>
 	<name>uia-comm</name>
 	<url>https://github.com/uia4j/uia-comm</url>
@@ -116,6 +116,11 @@
 			<id>my-github</id>
 			<url>https://maven.pkg.github.com/uia4j/repos</url>
 		</repository>
+		<snapshotRepository>
+			<id>my-github</id>
+			<uniqueVersion>false</uniqueVersion>
+			<url>https://maven.pkg.github.com/uia4j/repos</url>
+		</snapshotRepository>
 	</distributionManagement>
 	<issueManagement>
 		<url>https://github.com/uia4j/uia-comm/issues</url>
