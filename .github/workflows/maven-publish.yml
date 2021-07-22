@@ -22,13 +22,12 @@ jobs:
       with:
         java-version: '8'
         distribution: 'adopt'
-        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-        settings-path: ${{ github.workspace }} # location for the settings.xml file
+        server-id: my-github # Value of the distributionManagement/repository/id field of the pom.xml
 
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: mvn -B package --file uia.comm/pom.xml
 
     - name: Publish to GitHub Packages Apache Maven
-      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+      run: mvn deploy --file uia.comm/pom.xml
       env:
-        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ secrets.UIA4J_REPOS_DEPLOY }}
