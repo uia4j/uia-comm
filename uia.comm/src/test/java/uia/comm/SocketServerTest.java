@@ -38,7 +38,7 @@ public class SocketServerTest {
 
     public SocketServerTest() {
     }
-
+ 
     @Test
     public void testOnlyOne() throws Exception {
         SocketServer server = create("OnlyOne", 2236, ConnectionStyle.ONLYONE);
@@ -77,6 +77,7 @@ public class SocketServerTest {
             Thread.sleep(1000);
             Assert.assertEquals(1, server.getClientCount());
             Thread.sleep(5000);
+            client.disconnect();
         }
 
         Thread.sleep(120000);
